@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2 -fomit-frame-pointer -Wall -Wextra
+CFLAGS=-g -Wall -Wextra
 LDFLAGS=-ltre
 PROG="duser"
 SRC=duser.c
