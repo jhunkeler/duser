@@ -59,7 +59,8 @@ int user_del(record_t* rec)
 	int fd;
 	int verify;
 	char buf[REGEX_MAX];
-	char tmpfile[255] = "/tmp/duser.XXXXXX";
+	char tmpfile[255];
+	snprintf(tmpfile, sizeof(tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
 	if((fd = mkstemp(tmpfile)) < 0 || (tfp = fdopen(fd, "w+")) == NULL)
 	{
 		if(fd != -1)
@@ -79,11 +80,10 @@ int user_del(record_t* rec)
 
 	while(!feof(fp))
 	{
+		memset(buf, 0, sizeof(buf));
 		fgets(buf, REGEX_MAX, fp);
-		if((verify = find_in_file_ex(rec)) != -1)
-			continue;
-		else
-			fputs(buf, tfp);
+		if((verify = find_in_file_ex(rec)))
+			write(fd, buf, sizeof(buf));
 	}
 
 	fclose(fp);
@@ -95,7 +95,8 @@ int user_del(record_t* rec)
 // VERIFY that the record is proper (useful for deletion of users)
 int find_in_file_ex(record_t* rec)
 {
-	int index_local = 0;
+	int index_temp = 0;
+	int index_local = -1;
 	char buf[REGEX_MAX];
 	FILE *fp;
 	
@@ -109,8 +110,9 @@ int find_in_file_ex(record_t* rec)
 	{
 		fgets(buf, REGEX_MAX, fp);
 		buf[strlen(buf) - 1] = '\0';
+		index_temp++;
 		if((strcmp(buf, rec->name)) != 0) 
-			index_local++;
+			index_local = index_temp;
 		else
 			break;
 	}
