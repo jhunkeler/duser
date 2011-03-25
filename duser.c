@@ -6,21 +6,44 @@
 #include <ctype.h>
 #include <errno.h>
 #include <tre/regex.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <fcntl.h>
 #define REGEX_MAX	60
+const char* list_path = "/internal/1/domotest/opt/majordomo/majordomo-1.94.3/lists/";
+const char* regex_fmt = "\%s$";
 
+typedef struct stats_t
+{
+	int lines;
+	int files;
+	int matches;
+	int added;
+	int deleted;
+	int modified;
+} stats_t;
+//Global statistics struct
+stats_t processed;
 
 typedef struct record_t
 {
 	int index;
 	int match;
-	char file[PATH_MAX];
+	int pad1;
 	char name[REGEX_MAX];
+	int pad2;
+	char file[PATH_MAX];
+	int pad3;
 } record_t;
 
 char* basename(const char* path);
 record_t* find_in_file(const char* filename, const char* needle);
 int get_file_count(const char* path);
 char** get_file_list(const char* path, int count);
+void stats_init(stats_t *s);
+int user_list(const char* needle);
+int find_in_file_ex(record_t* rec);
+int user_del(record_t* rec);
 
 char* basename(const char* path)
 {
@@ -28,7 +51,74 @@ char* basename(const char* path)
 	return ptr ? ptr + 1 : (char*)path;
 }
 
-const char* regex_fmt = "\%s$";
+
+int user_del(record_t* rec)
+{
+	FILE *tfp;
+	FILE *fp;
+	int fd;
+	int verify;
+	char buf[REGEX_MAX];
+	char tmpfile[255] = "/tmp/duser.XXXXXX";
+	if((fd = mkstemp(tmpfile)) < 0 || (tfp = fdopen(fd, "w+")) == NULL)
+	{
+		if(fd != -1)
+		{
+			close(fd);
+			unlink(tmpfile);
+		}
+		fprintf(stderr, "%s: %s\n", tmpfile, strerror(errno));
+		exit(1);
+	}
+	
+	if((fp = fopen(rec->file, "r")) == NULL)
+	{
+		fprintf(stderr, "%s: %s\n", rec->file, strerror(errno));
+		exit(1);
+	}
+
+	while(!feof(fp))
+	{
+		fgets(buf, REGEX_MAX, fp);
+		if((verify = find_in_file_ex(rec)) != -1)
+			continue;
+		else
+			fputs(buf, tfp);
+	}
+
+	fclose(fp);
+	close(fd);
+//	unlink(tmpfile);
+
+	return 0;
+}
+// VERIFY that the record is proper (useful for deletion of users)
+int find_in_file_ex(record_t* rec)
+{
+	int index_local = 0;
+	char buf[REGEX_MAX];
+	FILE *fp;
+	
+	if((fp = fopen(rec->file, "r")) == NULL)
+	{
+		perror("find_in_file_ex");
+		return index_local;
+	}
+	
+	while(!feof(fp))
+	{
+		fgets(buf, REGEX_MAX, fp);
+		buf[strlen(buf) - 1] = '\0';
+		if((strcmp(buf, rec->name)) != 0) 
+			index_local++;
+		else
+			break;
+	}
+
+	fclose(fp);
+	return index_local;
+}
+
 record_t* find_in_file(const char* filename, const char* needle)
 {
 	regmatch_t pmatch[10];
@@ -49,7 +139,7 @@ record_t* find_in_file(const char* filename, const char* needle)
 	}
 	snprintf(regex, REGEX_MAX, regex_fmt, needle);
 	strncpy(rptr->file, filename, PATH_MAX);
-	strncpy(rptr->name, needle, strlen(needle));
+	snprintf(rptr->name, REGEX_MAX, "%s", needle);
 	regcomp(&preg, regex, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	while(!feof(fp))
 	{
@@ -63,6 +153,7 @@ record_t* find_in_file(const char* filename, const char* needle)
 			rptr->index = index;
 		}
 		index++;
+		processed.lines++;
 	}
 
 	if(rptr->match)
@@ -96,6 +187,16 @@ int get_file_count(const char* path)
 	return file_count;
 }
 
+void free_file_list(char** list)
+{
+	int i = 0;
+	for( i = 0 ; list[i] != NULL ; i++ )
+	{
+		free(list[i]);
+	}
+	free(list);
+}
+
 char** get_file_list(const char* path, int count)
 {
 	DIR *dp;
@@ -108,7 +209,7 @@ char** get_file_list(const char* path, int count)
 		exit(1);
 	}
 
-	char **list = (char**)calloc(count, sizeof(char*));
+	char **list = (char**)calloc(count, REGEX_MAX);
 	if(list == NULL)
 	{
 		perror("calloc");
@@ -118,41 +219,123 @@ char** get_file_list(const char* path, int count)
 	{
 		if(ep->d_type == DT_REG && !strstr(ep->d_name, "."))
 		{
-			list[i] = (char*)malloc(sizeof(char) * strlen(ep->d_name));
-			memset(list[i], 0L, sizeof(ep->d_name));
+			list[i] = (char*)malloc(sizeof(char) * strlen(ep->d_name)+1);
+			memset(list[i], 0L, strlen(ep->d_name));
 			strncpy(list[i], ep->d_name, strlen(ep->d_name));
 			i++;
 		}
 	}
 	closedir(dp);
-
 	return list;
 }
-static int file_count = 0;
-const char* list_path = "/internal/1/domotest/opt/majordomo/majordomo-1.94.3/lists/";
 
-int main(int argc, char* argv[])
+void stats_init(stats_t *s)
 {
-	if(argc < 2)
-	{
-		printf("Please define an email address to search for\n");
-		exit(1);
-	}
-	file_count = get_file_count(list_path);
+	s->lines = 0;
+	s->files = 0;
+	s->matches = 0;
+	s->added = 0;
+	s->deleted = 0;
+	s->modified = 0;
+}
+
+int user_list(const char* needle)
+{
+	int verified = 0;
+	processed.files = get_file_count(list_path);
 	char** list;
-	list = get_file_list(list_path, file_count);
+	list = get_file_list(list_path, processed.files);
+
+	printf("%20s%12s\n", "List", "At line");
+	printf("\t\t%s\n", "================");
 	int i = 0;
 	for(i = 0 ; list[i] != NULL ; i++)
 	{
 		char tmp[PATH_MAX];
 		sprintf(tmp, "%s%s", list_path, list[i]);
 		record_t *rp;
-		if((rp = find_in_file(tmp, argv[1])) != NULL)
+		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
-			printf("%s (Index: %d)\n", basename(rp->file), rp->index);
+			verified = find_in_file_ex(rp);
+			printf("%20s\t%5d -> %s(%d) -> %d\n", basename(rp->file), rp->index, verified ? "Yes" : "No", verified, user_del(rp));
+			processed.matches++;
 		}
 	}
-	printf("%d files\n", file_count);
+	free_file_list(list);	
+	return 0;
+}
 
+void usage(const char* progname)
+{
+	printf("Domouser v0.1a - jhunk@stsci.edu\n");
+	printf("Usage: %s\n", progname);
+	printf("	-h		This usage statement\n");
+	printf("	-a		Add a user to a list\n");
+	printf("	-d		Delete a user from all lists\n");
+	printf("	-l		Find and list a user in all lists\n");
+	printf("\n");
+	exit(0);
+}
+
+static const struct option options[] = {
+	{"help",	no_argument,		NULL,	'h'},
+	{"add",		required_argument,	NULL,	'a'},
+	{"del",		required_argument,	NULL,	'd'},
+	{"mod",		required_argument,	NULL,	'm'},
+	{"list",	no_argument,		NULL,	'l'},
+	{NULL,		0,					NULL,	0}
+};
+static const char *optstring = "hl:a:m:d";
+int user_cmd_add = 0;
+int user_cmd_del = 0;
+int user_cmd_mod = 0;
+int user_cmd_list = 0;
+int user_cmd_noopt = 0;
+
+int main(int argc, char* argv[])
+{
+	stats_init(&processed);
+	char *needle;
+
+	char c;
+	while((c = getopt_long(argc, argv, optstring, options, NULL)) != -1)
+	{
+		switch(c)
+		{
+			case 'h':
+				usage(argv[0]);
+				break;
+			case 'a':
+				user_cmd_add = 1;
+				break;
+			case 'd':
+				user_cmd_del = 1;
+				break;
+			case 'm':
+				user_cmd_mod = 1;
+				break;
+			case 'l':
+				user_cmd_list = 1;
+				needle = strdup(optarg);
+				break;
+			case '?':
+				usage(argv[0]);
+				break;
+
+			default:
+				return 1;
+				break;
+
+		}
+	}
+	
+	if(user_cmd_list || user_cmd_noopt)
+	{
+		user_list(needle);
+	}
+	
+
+	printf("\n%d matches\t%d files\t%d lines parsed\n", 
+		processed.matches, processed.files, processed.lines);
 	return 0;
 }
