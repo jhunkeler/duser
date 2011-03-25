@@ -82,8 +82,12 @@ int user_del(record_t* rec)
 	{
 		memset(buf, 0, sizeof(buf));
 		fgets(buf, REGEX_MAX, fp);
-		if((verify = find_in_file_ex(rec)))
-			write(fd, buf, sizeof(buf));
+		buf[strlen(buf) - 1] = '\0';
+		if((strcmp(buf, rec->name)) != 0 )
+		{
+			buf[strlen(buf)] = '\n';
+			write(fd, buf, strlen(buf));
+		}
 	}
 
 	fclose(fp);
@@ -95,30 +99,29 @@ int user_del(record_t* rec)
 // VERIFY that the record is proper (useful for deletion of users)
 int find_in_file_ex(record_t* rec)
 {
-	int index_temp = 0;
-	int index_local = -1;
+	int match = -1;
 	char buf[REGEX_MAX];
 	FILE *fp;
 	
 	if((fp = fopen(rec->file, "r")) == NULL)
 	{
 		perror("find_in_file_ex");
-		return index_local;
+		return -1;
 	}
 	
 	while(!feof(fp))
 	{
 		fgets(buf, REGEX_MAX, fp);
 		buf[strlen(buf) - 1] = '\0';
-		index_temp++;
-		if((strcmp(buf, rec->name)) != 0) 
-			index_local = index_temp;
-		else
+		if((strcmp(buf, rec->name)) == 0) 
+		{
+			match = 0;
 			break;
+		}
 	}
 
 	fclose(fp);
-	return index_local;
+	return match;
 }
 
 record_t* find_in_file(const char* filename, const char* needle)
