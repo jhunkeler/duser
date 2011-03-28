@@ -57,7 +57,6 @@ int user_del(record_t* rec)
 	FILE *tfp;
 	FILE *fp;
 	int fd;
-	int verify;
 	char buf[REGEX_MAX];
 	char tmpfile[255];
 	snprintf(tmpfile, sizeof(tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
@@ -83,7 +82,7 @@ int user_del(record_t* rec)
 		memset(buf, 0, sizeof(buf));
 		fgets(buf, REGEX_MAX, fp);
 		buf[strlen(buf) - 1] = '\0';
-		if((strcmp(buf, rec->name)) != 0 )
+		if((strncmp(buf, rec->name, strlen(rec->name))) != 0 )
 		{
 			buf[strlen(buf)] = '\n';
 			write(fd, buf, strlen(buf));
@@ -92,7 +91,7 @@ int user_del(record_t* rec)
 
 	fclose(fp);
 	close(fd);
-//	unlink(tmpfile);
+	unlink(tmpfile);
 
 	return 0;
 }
@@ -113,7 +112,7 @@ int find_in_file_ex(record_t* rec)
 	{
 		fgets(buf, REGEX_MAX, fp);
 		buf[strlen(buf) - 1] = '\0';
-		if((strcmp(buf, rec->name)) == 0) 
+		if((strncmp(buf, rec->name, strlen(rec->name))) == 0) 
 		{
 			match = 0;
 			break;
@@ -246,7 +245,6 @@ void stats_init(stats_t *s)
 
 int user_list(const char* needle)
 {
-	int verified = 0;
 	processed.files = get_file_count(list_path);
 	char** list;
 	list = get_file_list(list_path, processed.files);
@@ -261,8 +259,7 @@ int user_list(const char* needle)
 		record_t *rp;
 		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
-			verified = find_in_file_ex(rp);
-			printf("%20s\t%5d -> %s(%d) -> %d\n", basename(rp->file), rp->index, verified ? "Yes" : "No", verified, user_del(rp));
+			printf("%20s\t%5d\n", basename(rp->file), rp->index);
 			processed.matches++;
 		}
 	}
@@ -273,74 +270,178 @@ int user_list(const char* needle)
 void usage(const char* progname)
 {
 	printf("Domouser v0.1a - jhunk@stsci.edu\n");
-	printf("Usage: %s\n", progname);
-	printf("	-h		This usage statement\n");
-	printf("	-a		Add a user to a list\n");
-	printf("	-d		Delete a user from all lists\n");
-	printf("	-l		Find and list a user in all lists\n");
+	printf("Usage: %s command address [list]\n", progname);
+	printf("Commands:\n");
+	printf("  help		This usage statement\n");
+	printf("  add		Add a user to a list\n");
+	printf("  del		Delete a user from all lists\n");
+	printf("  mod		Modify a user in a list\n");
+	printf("  list		Find and list a user in all lists\n");
+	printf("  look		Find user in specific list\n");
 	printf("\n");
 	exit(0);
 }
 
-static const struct option options[] = {
-	{"help",	no_argument,		NULL,	'h'},
-	{"add",		required_argument,	NULL,	'a'},
-	{"del",		required_argument,	NULL,	'd'},
-	{"mod",		required_argument,	NULL,	'm'},
-	{"list",	no_argument,		NULL,	'l'},
-	{NULL,		0,					NULL,	0}
-};
-static const char *optstring = "hl:a:m:d";
 int user_cmd_add = 0;
 int user_cmd_del = 0;
 int user_cmd_mod = 0;
 int user_cmd_list = 0;
 int user_cmd_noopt = 0;
 
-int main(int argc, char* argv[])
+#define CMD_FLAG_NOOPT 0x00
+#define CMD_FLAG_DEL 0x02
+#define CMD_FLAG_MOD 0x04
+#define CMD_FLAG_ADD 0x08
+#define CMD_FLAG_LIST 0x16
+#define CMD_FLAG_HELP 0x32
+#define	CMD_FLAG_LOOK 0x64
+#define CMD_FLAG_NULL 0x254
+int user_cmd(const char* arg)
 {
-	stats_init(&processed);
-	char *needle;
-
-	char c;
-	while((c = getopt_long(argc, argv, optstring, options, NULL)) != -1)
+	if(arg)
 	{
-		switch(c)
+		if((strcmp(arg, "del")) == 0)
 		{
-			case 'h':
-				usage(argv[0]);
-				break;
-			case 'a':
-				user_cmd_add = 1;
-				break;
-			case 'd':
-				user_cmd_del = 1;
-				break;
-			case 'm':
-				user_cmd_mod = 1;
-				break;
-			case 'l':
-				user_cmd_list = 1;
-				needle = strdup(optarg);
-				break;
-			case '?':
-				usage(argv[0]);
-				break;
-
-			default:
-				return 1;
-				break;
-
+			return CMD_FLAG_DEL;
+		}
+		if((strcmp(arg, "add")) == 0)
+		{
+			return CMD_FLAG_ADD;
+		}
+		if((strcmp(arg, "mod")) == 0)
+		{
+			return CMD_FLAG_MOD;
+		}
+		if((strcmp(arg, "list")) == 0)
+		{
+			return CMD_FLAG_LIST;
+		}
+		if((strcmp(arg, "look")) == 0)
+		{
+			return CMD_FLAG_LOOK;
+		}
+		if((strcmp(arg, "help")) == 0)
+		{
+			return CMD_FLAG_HELP;
 		}
 	}
-	
-	if(user_cmd_list || user_cmd_noopt)
-	{
-		user_list(needle);
-	}
-	
+	else
+		return CMD_FLAG_NULL;
 
+	return CMD_FLAG_NULL;
+}
+
+int main(int argc, char* argv[])
+{
+	const char* progname = argv[0];
+	const char* command = argv[1];
+	const char* needle = argv[2];
+	const char* single_list = argv[3];
+	char filename[PATH_MAX];
+
+	stats_init(&processed);
+	int c = 0;
+
+	if(argc < 2)
+	{
+		usage(progname);
+		return 0;
+	}
+
+	if(single_list)
+		snprintf(filename, PATH_MAX, "%s%s", list_path, single_list);
+
+	c = user_cmd(command);
+	switch(c)
+	{
+		case CMD_FLAG_DEL:
+			if(needle == NULL)
+			{
+				printf("You must specify an email address\n");
+				return -1;
+			}
+			else if(single_list == NULL)
+			{
+				printf("You must specify a list in which to delete '%s' from\n", needle);
+				return -1;
+			}
+			break;
+		
+		case CMD_FLAG_ADD:
+			printf("add flag active\n");
+			if(needle == NULL)
+			{
+				printf("You must specify an email address\n");
+				return -1;
+			}
+			else if(single_list == NULL)
+			{
+				printf("You must specify a list in which to add '%s' to\n", needle);
+				return -1;
+			}
+			break;
+
+		case CMD_FLAG_MOD:
+			printf("modify flag active\n");
+			if(needle == NULL)
+			{
+				printf("You must specify an email address\n");
+				return -1;
+			}
+			else if(single_list == NULL)
+			{
+				printf("You must specify a list in which to modify '%s' in\n", needle);
+				return -1;
+			}
+			break;
+
+		case CMD_FLAG_LIST:
+			printf("list flag active\n");
+			if(needle == NULL)
+			{
+				printf("You must specify an email address\n");
+				return -1;
+			}
+			break;
+
+		case CMD_FLAG_LOOK:
+			if(needle == NULL)
+			{
+				printf("You must specify an email address\n");
+				return -1;
+			}
+			else if(single_list == NULL)
+			{
+				printf("You must specify a list in which to find '%s' in\n", needle);
+				return -1;
+			}
+			record_t *rec = find_in_file(filename, needle);
+			
+			if(rec)
+			{
+				if(rec->match)
+					printf("Found '%s' at line %d of list '%s'\n", rec->name, rec->index, basename(rec->file));
+				else
+					printf("Corrupt record?  This is not supposed to happen.\n");
+			}
+			else
+			{
+				printf("Not found in '%s'\n", single_list);
+			}
+
+			break;
+		case CMD_FLAG_HELP:
+			usage(progname);
+			break;
+
+		default:
+			printf("'%s' is not a valid command\n", command);
+			usage(progname);
+			break;
+	};
+/*
 	printf("\n%d matches\t%d files\t%d lines parsed\n", 
 		processed.matches, processed.files, processed.lines);
+*/
 	return 0;
 }
