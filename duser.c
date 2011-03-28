@@ -6,44 +6,10 @@
 #include <ctype.h>
 #include <errno.h>
 #include <tre/regex.h>
-#include <getopt.h>
 #include <unistd.h>
 #include <fcntl.h>
-#define REGEX_MAX	60
-const char* list_path = "/internal/1/domotest/opt/majordomo/majordomo-1.94.3/lists/";
-const char* regex_fmt = "\%s$";
+#include "duser.h"
 
-typedef struct stats_t
-{
-	int lines;
-	int files;
-	int matches;
-	int added;
-	int deleted;
-	int modified;
-} stats_t;
-//Global statistics struct
-stats_t processed;
-
-typedef struct record_t
-{
-	int index;
-	int match;
-	int pad1;
-	char name[REGEX_MAX];
-	int pad2;
-	char file[PATH_MAX];
-	int pad3;
-} record_t;
-
-char* basename(const char* path);
-record_t* find_in_file(const char* filename, const char* needle);
-int get_file_count(const char* path);
-char** get_file_list(const char* path, int count);
-void stats_init(stats_t *s);
-int user_list(const char* needle);
-int find_in_file_ex(record_t* rec);
-int user_del(record_t* rec);
 
 char* basename(const char* path)
 {
@@ -51,12 +17,12 @@ char* basename(const char* path)
 	return ptr ? ptr + 1 : (char*)path;
 }
 
-
 int user_del(record_t* rec)
 {
 	FILE *tfp;
 	FILE *fp;
-	int fd;
+	int fd = 0;
+	int bytes = 0;
 	char buf[REGEX_MAX];
 	char tmpfile[255];
 	snprintf(tmpfile, sizeof(tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
@@ -85,13 +51,41 @@ int user_del(record_t* rec)
 		if((strncmp(buf, rec->name, strlen(rec->name))) != 0 )
 		{
 			buf[strlen(buf)] = '\n';
-			write(fd, buf, strlen(buf));
+			bytes = write(fd, buf, strlen(buf));
+		}
+	}
+	//Rewind the temp file
+	lseek(fd, 0L, SEEK_SET);
+	//Close the original file
+	fclose(fp);
+	//Truncate original and copy data from tmp to original
+	if((fp = fopen(rec->file, "w+")) == NULL)
+	{
+		fprintf(stderr, "%s: %s\n", rec->file, strerror(errno));
+		exit(1);
+	}
+
+	while(!feof(tfp))
+	{
+		memset(buf, 0, sizeof(buf));
+		fgets(buf, REGEX_MAX, tfp);
+		buf[strlen(buf) - 1] = '\0';
+		if((strncmp(buf, rec->name, strlen(rec->name))) != 0 )
+		{
+			buf[strlen(buf)] = '\n';
+			if(buf[0] == '\n')
+				buf[0] = '\0';
+
+			bytes = fwrite(buf, strlen(buf), 1, fp);
 		}
 	}
 
 	fclose(fp);
 	close(fd);
 	unlink(tmpfile);
+	
+	if(bytes)
+		return bytes;
 
 	return 0;
 }
@@ -114,7 +108,7 @@ int find_in_file_ex(record_t* rec)
 		buf[strlen(buf) - 1] = '\0';
 		if((strncmp(buf, rec->name, strlen(rec->name))) == 0) 
 		{
-			match = 0;
+			match = 1;
 			break;
 		}
 	}
@@ -282,20 +276,7 @@ void usage(const char* progname)
 	exit(0);
 }
 
-int user_cmd_add = 0;
-int user_cmd_del = 0;
-int user_cmd_mod = 0;
-int user_cmd_list = 0;
-int user_cmd_noopt = 0;
 
-#define CMD_FLAG_NOOPT 0x00
-#define CMD_FLAG_DEL 0x02
-#define CMD_FLAG_MOD 0x04
-#define CMD_FLAG_ADD 0x08
-#define CMD_FLAG_LIST 0x16
-#define CMD_FLAG_HELP 0x32
-#define	CMD_FLAG_LOOK 0x64
-#define CMD_FLAG_NULL 0x254
 int user_cmd(const char* arg)
 {
 	if(arg)
@@ -331,6 +312,14 @@ int user_cmd(const char* arg)
 	return CMD_FLAG_NULL;
 }
 
+int user_choice(char c)
+{
+	if(c == 'y' || c == 'Y')
+		return 0;
+
+	return 1;
+}
+
 int main(int argc, char* argv[])
 {
 	const char* progname = argv[0];
@@ -338,6 +327,7 @@ int main(int argc, char* argv[])
 	const char* needle = argv[2];
 	const char* single_list = argv[3];
 	char filename[PATH_MAX];
+	record_t *rec;
 
 	stats_init(&processed);
 	int c = 0;
@@ -348,7 +338,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	if(single_list)
+	if(needle && single_list)
 		snprintf(filename, PATH_MAX, "%s%s", list_path, single_list);
 
 	c = user_cmd(command);
@@ -365,6 +355,34 @@ int main(int argc, char* argv[])
 				printf("You must specify a list in which to delete '%s' from\n", needle);
 				return -1;
 			}
+			
+			if((rec = find_in_file(filename, needle)) == NULL)
+			{
+				printf("Record not found\n");
+				return -1;
+			}
+
+			printf("Please review the information below:\n\n");
+			printf("Email:    %s\n", rec->name);
+			printf("At line:  %d\n", rec->index);
+			printf("In File:  %s\n", basename(rec->file));
+			printf("\nDo you wish to wish to delete this record? [y/N] ");
+			
+			char choice = getchar();
+			if((user_choice(choice)) == 0)
+			{
+				int success = 0;
+				if((success = user_del(rec)) > 0)
+				{
+					printf("Record deleted\n");
+					rec = NULL;
+				}
+			}
+			else
+			{
+				printf("Exiting...\n");
+			}
+
 			break;
 		
 		case CMD_FLAG_ADD:
@@ -396,12 +414,12 @@ int main(int argc, char* argv[])
 			break;
 
 		case CMD_FLAG_LIST:
-			printf("list flag active\n");
 			if(needle == NULL)
 			{
 				printf("You must specify an email address\n");
 				return -1;
 			}
+			user_list(needle);
 			break;
 
 		case CMD_FLAG_LOOK:
@@ -415,14 +433,18 @@ int main(int argc, char* argv[])
 				printf("You must specify a list in which to find '%s' in\n", needle);
 				return -1;
 			}
-			record_t *rec = find_in_file(filename, needle);
 			
+			rec = find_in_file(filename, needle);
 			if(rec)
 			{
 				if(rec->match)
+				{
 					printf("Found '%s' at line %d of list '%s'\n", rec->name, rec->index, basename(rec->file));
+				}
 				else
+				{
 					printf("Corrupt record?  This is not supposed to happen.\n");
+				}
 			}
 			else
 			{
