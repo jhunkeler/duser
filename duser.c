@@ -10,11 +10,82 @@
 #include <fcntl.h>
 #include "duser.h"
 
+int CMD_FLAG_NOOPT = 0;
+int CMD_FLAG_DEL = 0;
+int CMD_FLAG_MOD = 0;
+int CMD_FLAG_ADD = 0;
+int CMD_FLAG_LIST = 0;
+int CMD_FLAG_HELP = 0;
+int CMD_FLAG_LOOK = 0;
+int CMD_FLAG_DEL_ALL = 0;
+int CMD_FLAG_NULL = 0;
 
 char* basename(const char* path)
 {
 	char *ptr = strrchr(path, '/');
 	return ptr ? ptr + 1 : (char*)path;
+}
+
+int user_del_all(const char* needle)
+{
+	processed.files = get_file_count(list_path);
+	char** list;
+	char tmp[PATH_MAX];
+	record_t *rp;
+	list = get_file_list(list_path, processed.files);
+
+	int i = 0;
+	for(i = 0 ; list[i] != NULL ; i++)
+	{
+		rp = NULL;
+		snprintf(tmp, PATH_MAX, "%s%s", list_path, list[i]);
+		if((rp = find_in_file(tmp, needle)) != NULL)
+		{
+			printf("%20s\t%5d\n", basename(rp->file), rp->index);
+			processed.matches++;
+		}
+	}
+
+	printf("\n%d matches\t%d files\t%d lines parsed\n", 
+		processed.matches, processed.files, processed.lines);
+	
+	if(processed.matches < 1)
+	{
+		free_file_list(list);	
+		return -1;
+	}
+
+	printf("\n!!!WARNING!!!\n");
+	printf("You are about to delete '%s' from every list\n", needle);
+	printf("that it appears in!\n\n");
+	printf("Are SURE you want to continue? [y/N]");
+
+	int choice = getchar();
+	if((user_choice(choice)) != 0)
+	{
+		printf("Aborting...\n");
+		exit(1);
+	}
+	else
+	{
+		COM(SELF, "Commmand: DELETE %s\n", CMD_FLAG_DEL_ALL ? "ALL" : "SINGLE");
+		for(i = 0 ; list[i] != NULL ; i++)
+		{
+			rp = NULL;
+			snprintf(tmp, PATH_MAX, "%s%s", list_path, list[i]);
+			if((rp = find_in_file(tmp, needle)) != NULL)
+			{
+				if((user_del(rp)) > 0)
+				{
+					COM(SELF, "'%s' deleted from '%s' at line %d\n", rp->name, basename(rp->file), rp->index);
+					printf("'%s' deleted from '%s'\n", rp->name, basename(rp->file));
+				}
+			}
+		}
+	}
+	free_file_list(list);
+	return 0;
+	
 }
 
 int user_del(record_t* rec)
@@ -23,6 +94,7 @@ int user_del(record_t* rec)
 	FILE *fp;
 	int fd = 0;
 	int bytes = 0;
+	int bytes_total = 0;
 	char buf[REGEX_MAX];
 	char tmpfile[255];
 	snprintf(tmpfile, sizeof(tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
@@ -77,6 +149,7 @@ int user_del(record_t* rec)
 				buf[0] = '\0';
 
 			bytes = fwrite(buf, strlen(buf), 1, fp);
+			bytes_total += bytes;
 		}
 	}
 
@@ -84,8 +157,8 @@ int user_del(record_t* rec)
 	close(fd);
 	unlink(tmpfile);
 	
-	if(bytes)
-		return bytes;
+	if(bytes_total)
+		return bytes_total;
 
 	return 0;
 }
@@ -154,6 +227,7 @@ record_t* find_in_file(const char* filename, const char* needle)
 		processed.lines++;
 	}
 
+	fclose(fp);
 	if(rptr->match)
 		return rptr;
 	else
@@ -244,7 +318,7 @@ int user_list(const char* needle)
 	list = get_file_list(list_path, processed.files);
 
 	printf("%20s%12s\n", "List", "At line");
-	printf("\t\t%s\n", "================");
+	printf("\t\t%s\n", "=====================");
 	int i = 0;
 	for(i = 0 ; list[i] != NULL ; i++)
 	{
@@ -258,6 +332,9 @@ int user_list(const char* needle)
 		}
 	}
 	free_file_list(list);	
+
+	printf("\n%d matches\t%d files\t%d lines parsed\n", 
+		processed.matches, processed.files, processed.lines);
 	return 0;
 }
 
@@ -268,7 +345,9 @@ void usage(const char* progname)
 	printf("Commands:\n");
 	printf("  help		This usage statement\n");
 	printf("  add		Add a user to a list\n");
-	printf("  del		Delete a user from all lists\n");
+	printf("  del		Delete a user from a list\n");
+	printf("  delA		Delete a user from all lists\n");	
+	printf("  delL		Completely delete a mailing list\n");
 	printf("  mod		Modify a user in a list\n");
 	printf("  list		Find and list a user in all lists\n");
 	printf("  look		Find user in specific list\n");
@@ -276,40 +355,49 @@ void usage(const char* progname)
 	exit(0);
 }
 
-
-int user_cmd(const char* arg)
+int user_cmd(const int argc, char* argv[])
 {
-	if(arg)
-	{
-		if((strcmp(arg, "del")) == 0)
-		{
-			return CMD_FLAG_DEL;
-		}
-		if((strcmp(arg, "add")) == 0)
-		{
-			return CMD_FLAG_ADD;
-		}
-		if((strcmp(arg, "mod")) == 0)
-		{
-			return CMD_FLAG_MOD;
-		}
-		if((strcmp(arg, "list")) == 0)
-		{
-			return CMD_FLAG_LIST;
-		}
-		if((strcmp(arg, "look")) == 0)
-		{
-			return CMD_FLAG_LOOK;
-		}
-		if((strcmp(arg, "help")) == 0)
-		{
-			return CMD_FLAG_HELP;
-		}
-	}
-	else
-		return CMD_FLAG_NULL;
+	const char* cmd = argv[1];
+	int i = 2;
 
-	return CMD_FLAG_NULL;
+	while(i < argc)
+	{
+		if(cmd)
+		{
+			if((strncmp(cmd, "del", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_DEL = 1;
+			}
+			if((strncmp(cmd, "delA", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_DEL_ALL = 1;
+			}
+			if((strncmp(cmd, "add", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_ADD = 1;
+			}
+			if((strncmp(cmd, "mod", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_MOD = 1;
+			}
+			if((strncmp(cmd, "list", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_LIST = 1;
+			}
+			if((strncmp(cmd, "look", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_LOOK = 1;
+			}
+			if((strncmp(cmd, "help", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_HELP = 1;
+			}
+		}
+		i++;
+	}
+
+
+	return 0;
 }
 
 int user_choice(char c)
@@ -320,150 +408,161 @@ int user_choice(char c)
 	return 1;
 }
 
+int check_cmd_string(char** args, const char* str2, int count)
+{
+	int i = 0;
+	while(i < count)
+	{
+		if((strncmp(args[i], str2, strlen(args[i]))) == 0)
+		{
+			return 0;
+		}
+		i++;
+	}
+	return -1;
+}
+
 int main(int argc, char* argv[])
 {
 	const char* progname = argv[0];
-	const char* command = argv[1];
 	const char* needle = argv[2];
 	const char* single_list = argv[3];
-	char filename[PATH_MAX];
-	record_t *rec;
 
-	stats_init(&processed);
-	int c = 0;
-
-	if(argc < 2)
+	if(argc < 3)
 	{
 		usage(progname);
 		return 0;
 	}
 
-	if(needle && single_list)
-		snprintf(filename, PATH_MAX, "%s%s", list_path, single_list);
+	char filename[PATH_MAX];
+	record_t *rec;
+	stats_init(&processed);
+	user_cmd(argc, argv);
 
-	c = user_cmd(command);
-	switch(c)
+	snprintf(filename, PATH_MAX, "%s%s", list_path, single_list);
+
+	if(CMD_FLAG_DEL)
 	{
-		case CMD_FLAG_DEL:
-			if(needle == NULL)
-			{
-				printf("You must specify an email address\n");
-				return -1;
-			}
-			else if(single_list == NULL)
-			{
-				printf("You must specify a list in which to delete '%s' from\n", needle);
-				return -1;
-			}
-			
-			if((rec = find_in_file(filename, needle)) == NULL)
-			{
-				printf("Record not found\n");
-				return -1;
-			}
+		if(needle == NULL)
+		{
+			printf("You must specify an email address\n");
+			return -1;
+		}
+		else if(single_list == NULL)
+		{
+			printf("You must specify a list to remove '%s' from\n", needle);
+			return -1;
+		}
 
-			printf("Please review the information below:\n\n");
-			printf("Email:    %s\n", rec->name);
-			printf("At line:  %d\n", rec->index);
-			printf("In File:  %s\n", basename(rec->file));
-			printf("\nDo you wish to wish to delete this record? [y/N] ");
-			
-			char choice = getchar();
-			if((user_choice(choice)) == 0)
-			{
-				int success = 0;
-				if((success = user_del(rec)) > 0)
-				{
-					printf("Record deleted\n");
-					rec = NULL;
-				}
-			}
-			else
-			{
-				printf("Exiting...\n");
-			}
 
-			break;
+		if((rec = find_in_file(filename, needle)) == NULL)
+		{
+			printf("'%s' not found in '%s'\n", needle, basename(filename));
+			return -1;
+		}
 		
-		case CMD_FLAG_ADD:
-			printf("add flag active\n");
-			if(needle == NULL)
-			{
-				printf("You must specify an email address\n");
-				return -1;
-			}
-			else if(single_list == NULL)
-			{
-				printf("You must specify a list in which to add '%s' to\n", needle);
-				return -1;
-			}
-			break;
-
-		case CMD_FLAG_MOD:
-			printf("modify flag active\n");
-			if(needle == NULL)
-			{
-				printf("You must specify an email address\n");
-				return -1;
-			}
-			else if(single_list == NULL)
-			{
-				printf("You must specify a list in which to modify '%s' in\n", needle);
-				return -1;
-			}
-			break;
-
-		case CMD_FLAG_LIST:
-			if(needle == NULL)
-			{
-				printf("You must specify an email address\n");
-				return -1;
-			}
-			user_list(needle);
-			break;
-
-		case CMD_FLAG_LOOK:
-			if(needle == NULL)
-			{
-				printf("You must specify an email address\n");
-				return -1;
-			}
-			else if(single_list == NULL)
-			{
-				printf("You must specify a list in which to find '%s' in\n", needle);
-				return -1;
-			}
+		printf("Please review the information below:\n\n");
+		printf("Email:    %s\n", rec->name);
+		printf("At line:  %d\n", rec->index);
+		printf("In File:  %s\n", basename(rec->file));
+		printf("\nDo you wish to wish to delete this record? [y/N] ");
 			
-			rec = find_in_file(filename, needle);
-			if(rec)
+		char choice = getchar();
+		int success = 0;
+		if((user_choice(choice)) == 0)
+		{
+			if((success = user_del(rec)) > 0)
 			{
-				if(rec->match)
-				{
-					printf("Found '%s' at line %d of list '%s'\n", rec->name, rec->index, basename(rec->file));
-				}
-				else
-				{
-					printf("Corrupt record?  This is not supposed to happen.\n");
-				}
+				printf("Record deleted\n");
+				COM(SELF, "Commmand: DELETE %s\n", CMD_FLAG_DEL_ALL ? "ALL" : "SINGLE");
+				COM(SELF, "'%s' deleted from '%s' at line %d\n", rec->name, basename(rec->file), rec->index);
+				rec = NULL;
+			}
+		}
+		else
+		{
+			printf("Aborting...\n");
+		}
+	}
+
+	if(CMD_FLAG_DEL_ALL)
+	{
+		user_del_all(needle);
+		return 0;
+	}
+
+	if(CMD_FLAG_ADD)
+	{
+		printf("add flag active\n");
+		if(needle == NULL)
+		{
+			printf("You must specify an email address\n");
+			return -1;
+		}
+		else if(single_list == NULL)
+		{
+			printf("You must specify a list in which to add '%s' to\n", needle);
+			return -1;
+		}
+	}
+	if(CMD_FLAG_MOD)
+	{
+		printf("modify flag active\n");
+		if(needle == NULL)
+		{
+			printf("You must specify an email address\n");
+			return -1;
+		}
+		else if(single_list == NULL)
+		{
+			printf("You must specify a list in which to modify '%s' in\n", needle);
+			return -1;
+		}
+	}
+	if(CMD_FLAG_LIST)
+	{
+		if(needle == NULL)
+		{
+			printf("You must specify an email address\n");
+			return -1;
+		}
+		user_list(needle);
+	} 
+	if(CMD_FLAG_LOOK)
+	{
+		if(needle == NULL)
+		{
+			printf("You must specify an email address\n");
+			return -1;
+		}
+		else if(single_list == NULL)
+		{
+			printf("You must specify a list in which to find '%s' in\n", needle);
+			return -1;
+		}
+			
+		rec = find_in_file(filename, needle);
+		if(rec)
+		{
+			if(rec->match)
+			{
+				printf("Found '%s' at line %d of list '%s'\n", rec->name, rec->index, basename(rec->file));
 			}
 			else
 			{
-				printf("Not found in '%s'\n", single_list);
+				printf("Corrupt record?  This is not supposed to happen.\n");
 			}
+		}
+		else
+		{
+			printf("Not found in '%s'\n", single_list);
+		}
+	}
 
-			break;
-		case CMD_FLAG_HELP:
-			usage(progname);
-			break;
+	if(CMD_FLAG_HELP)
+	{
+		usage(progname);
+	}
 
-		default:
-			printf("'%s' is not a valid command\n", command);
-			usage(progname);
-			break;
-	};
-/*
-	printf("\n%d matches\t%d files\t%d lines parsed\n", 
-		processed.matches, processed.files, processed.lines);
-*/
 	return 0;
 }

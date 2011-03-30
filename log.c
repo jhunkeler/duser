@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
@@ -33,6 +34,7 @@ int COM(const char* func, char *format, ...)
 	if(logfp == NULL)
     {
     	fprintf(stderr, "Unable to open %s\n", LOGFILE);
+		exit(1);
     }
     
     va_list args;
@@ -43,7 +45,7 @@ int COM(const char* func, char *format, ...)
     logtm = localtime(&logtime);
 
     snprintf(timestr, sizeof(timestr), "%02d-%02d-%02d %02d:%02d:%02d", logtm->tm_year+1900, logtm->tm_mon+1, logtm->tm_mday, logtm->tm_hour, logtm->tm_min, logtm->tm_sec);
-    snprintf(tmpstr, sizeof(tmpstr), "%s _%s_: %s", timestr, func, str);
+    snprintf(tmpstr, sizeof(tmpstr), "%s %d _%s_: %s", timestr, getuid(), func, str);
     fprintf(logfp, "%s", tmpstr);
     fclose(logfp);
     
