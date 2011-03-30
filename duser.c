@@ -12,18 +12,57 @@
 
 int CMD_FLAG_NOOPT = 0;
 int CMD_FLAG_DEL = 0;
+int CMD_FLAG_DEL_ALL = 0;
+int CMD_FLAG_DEL_LIST = 0;
 int CMD_FLAG_MOD = 0;
 int CMD_FLAG_ADD = 0;
 int CMD_FLAG_LIST = 0;
 int CMD_FLAG_HELP = 0;
 int CMD_FLAG_LOOK = 0;
-int CMD_FLAG_DEL_ALL = 0;
 int CMD_FLAG_NULL = 0;
 
 char* basename(const char* path)
 {
 	char *ptr = strrchr(path, '/');
 	return ptr ? ptr + 1 : (char*)path;
+}
+
+int user_del_list(const char* filename)
+{
+	char tmp[PATH_MAX];
+	snprintf(tmp, PATH_MAX, "%s%s", list_path, filename);
+
+	if((access(tmp, F_OK|W_OK)) != 0)
+	{
+		fprintf(stderr, "%s: %s\n", basename(tmp), strerror(errno));
+		return -1;
+	}
+	
+	printf("\n!!!WARNING!!!\n");
+	printf("You are about to delete the mailing list '%s'\n\n", basename(tmp));
+	printf("Are SURE you want to continue? [y/N]");
+	int choice = getchar();
+	if((user_choice(choice)) != 0)
+	{
+		printf("Aborting...\n");
+		exit(1);
+	}
+	else
+	{
+		COM(SELF, "Command: DELETE LIST\n");
+		if((unlink(tmp)) != 0)
+		{
+			fprintf(stderr, "%s: %s\n", basename(tmp), strerror(errno));
+			return errno;
+		}
+		else
+		{
+			COM(SELF, "List '%s' deleted\n", basename(tmp));
+			printf("Deleted list: '%s'\n", basename(tmp));
+		}
+	}
+
+	return 0;
 }
 
 int user_del_all(const char* needle)
@@ -372,6 +411,10 @@ int user_cmd(const int argc, char* argv[])
 			{
 				CMD_FLAG_DEL_ALL = 1;
 			}
+			if((strncmp(cmd, "delL", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_DEL_LIST = 1;
+			}
 			if((strncmp(cmd, "add", strlen(cmd))) == 0)
 			{
 				CMD_FLAG_ADD = 1;
@@ -468,10 +511,9 @@ int main(int argc, char* argv[])
 		printf("\nDo you wish to wish to delete this record? [y/N] ");
 			
 		char choice = getchar();
-		int success = 0;
 		if((user_choice(choice)) == 0)
 		{
-			if((success = user_del(rec)) > 0)
+			if((user_del(rec)) > 0)
 			{
 				printf("Record deleted\n");
 				COM(SELF, "Commmand: DELETE %s\n", CMD_FLAG_DEL_ALL ? "ALL" : "SINGLE");
@@ -488,6 +530,12 @@ int main(int argc, char* argv[])
 	if(CMD_FLAG_DEL_ALL)
 	{
 		user_del_all(needle);
+		return 0;
+	}
+
+	if(CMD_FLAG_DEL_LIST)
+	{
+		user_del_list(needle);
 		return 0;
 	}
 
