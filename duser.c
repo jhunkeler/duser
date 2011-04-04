@@ -362,18 +362,31 @@ int user_list(const char* needle)
 	for(i = 0 ; list[i] != NULL ; i++)
 	{
 		char tmp[PATH_MAX];
-		sprintf(tmp, "%s%s", list_path, list[i]);
+		snprintf(tmp, PATH_MAX, "%s%s", list_path, list[i]);
 		record_t *rp;
 		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
 			printf("%20s\t%5d\n", basename(rp->file), rp->index);
 			processed.matches++;
 		}
+		rp = NULL;
 	}
 	free_file_list(list);	
 
 	printf("\n%d matches\t%d files\t%d lines parsed\n", 
 		processed.matches, processed.files, processed.lines);
+	return 0;
+}
+
+int user_add(const char* filename, const char* needle)
+{
+	if((access(filename, W_OK|F_OK)) == 0)
+	{
+		fprintf(stderr, "List '%s' already exists.\n", basename(filename));
+		return -1;
+	}
+	
+	// add code to add a person to a file here
 	return 0;
 }
 
@@ -518,13 +531,13 @@ int main(int argc, char* argv[])
 				printf("Record deleted\n");
 				COM(SELF, "Commmand: DELETE %s\n", CMD_FLAG_DEL_ALL ? "ALL" : "SINGLE");
 				COM(SELF, "'%s' deleted from '%s' at line %d\n", rec->name, basename(rec->file), rec->index);
-				rec = NULL;
 			}
 		}
 		else
 		{
 			printf("Aborting...\n");
 		}
+		return 0;
 	}
 
 	if(CMD_FLAG_DEL_ALL)
@@ -552,6 +565,8 @@ int main(int argc, char* argv[])
 			printf("You must specify a list in which to add '%s' to\n", needle);
 			return -1;
 		}
+		user_add(filename, needle);
+		return 0;
 	}
 	if(CMD_FLAG_MOD)
 	{
@@ -566,6 +581,7 @@ int main(int argc, char* argv[])
 			printf("You must specify a list in which to modify '%s' in\n", needle);
 			return -1;
 		}
+		return 0;
 	}
 	if(CMD_FLAG_LIST)
 	{
@@ -575,6 +591,7 @@ int main(int argc, char* argv[])
 			return -1;
 		}
 		user_list(needle);
+		return 0;
 	} 
 	if(CMD_FLAG_LOOK)
 	{
@@ -605,6 +622,7 @@ int main(int argc, char* argv[])
 		{
 			printf("Not found in '%s'\n", single_list);
 		}
+		return 0;
 	}
 
 	if(CMD_FLAG_HELP)
