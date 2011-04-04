@@ -34,7 +34,7 @@ int user_del_list(const char* filename)
 
 	if((access(tmp, F_OK|W_OK)) != 0)
 	{
-		fprintf(stderr, "%s: %s\n", basename(tmp), strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, tmp, strerror(errno));
 		return -1;
 	}
 	
@@ -52,7 +52,7 @@ int user_del_list(const char* filename)
 		COM(SELF, "Command: DELETE LIST\n");
 		if((unlink(tmp)) != 0)
 		{
-			fprintf(stderr, "%s: %s\n", basename(tmp), strerror(errno));
+			fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, tmp, strerror(errno));
 			return errno;
 		}
 		else
@@ -144,13 +144,13 @@ int user_del(record_t* rec)
 			close(fd);
 			unlink(tmpfile);
 		}
-		fprintf(stderr, "%s: %s\n", tmpfile, strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, tmpfile, strerror(errno));
 		exit(1);
 	}
 	
 	if((fp = fopen(rec->file, "r")) == NULL)
 	{
-		fprintf(stderr, "%s: %s\n", rec->file, strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, rec->file, strerror(errno));
 		exit(1);
 	}
 
@@ -172,7 +172,7 @@ int user_del(record_t* rec)
 	//Truncate original and copy data from tmp to original
 	if((fp = fopen(rec->file, "w+")) == NULL)
 	{
-		fprintf(stderr, "%s: %s\n", rec->file, strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, rec->file, strerror(errno));
 		exit(1);
 	}
 
@@ -210,7 +210,7 @@ int find_in_file_ex(record_t* rec)
 	
 	if((fp = fopen(rec->file, "r")) == NULL)
 	{
-		perror("find_in_file_ex");
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, rec->file, strerror(errno));
 		return -1;
 	}
 	
@@ -244,7 +244,7 @@ record_t* find_in_file(const char* filename, const char* needle)
 	FILE *fp;
 	if((fp = fopen(filename, "r")) == NULL)
 	{
-		fprintf(stderr, "Failed to process: %s\nReason: %s\n", base, strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, base, strerror(errno));
 		exit(1);
 	}
 	snprintf(regex, REGEX_MAX, regex_fmt, needle);
@@ -282,7 +282,7 @@ int get_file_count(const char* path)
 
 	if((dp = opendir(path)) == NULL)
 	{
-		perror("opendir");
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, path, strerror(errno));
 		exit(1);
 	}
 
@@ -380,14 +380,24 @@ int user_list(const char* needle)
 
 int user_add(const char* filename, const char* needle)
 {
+	int bytes = 0;
+	FILE *fp;
 	if((access(filename, W_OK|F_OK)) == 0)
 	{
-		fprintf(stderr, "List '%s' already exists.\n", basename(filename));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, filename, strerror(errno));
 		return -1;
 	}
 	
-	// add code to add a person to a file here
-	return 0;
+	if((fp = fopen(filename, "w+")) == NULL)
+	{
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, filename, strerror(errno));
+		return -1;
+	}
+	
+	bytes = fputs(needle, fp);
+	fflush(fp);
+	fclose(fp);
+	return bytes;
 }
 
 void usage(const char* progname)
