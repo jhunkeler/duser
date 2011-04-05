@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-g -Wall -Wextra
-LDFLAGS=-ltre
+LDFLAGS=
 PROG="duser"
-SRC=duser.c duser.h log.c
+SRC=duser.c duser.h log.c cfg.c
 all:
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG) $(SRC)
 
