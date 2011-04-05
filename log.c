@@ -9,12 +9,15 @@
 #include <time.h>
 #include "duser.h"
 
+extern char logfile[PATH_MAX];
+//extern char* logfile;
+
 int logcleanup()
 {
     int status = 0;
-    if((access(LOGFILE, W_OK)) == 0)
+    if((access(logfile, W_OK)) == 0)
     {
-        status = unlink(LOGFILE);
+        status = unlink(logfile);
     }
 
     return status;
@@ -30,10 +33,10 @@ int COM(const char* func, char *format, ...)
     int n;
 
     FILE *logfp = NULL;
-	logfp = fopen(LOGFILE, "a+");
+	logfp = fopen(logfile, "a+");
 	if(logfp == NULL)
     {
-    	fprintf(stderr, "Unable to open %s\n", LOGFILE);
+    	fprintf(stderr, "Unable to open %s\n", logfile);
 		exit(1);
     }
     
