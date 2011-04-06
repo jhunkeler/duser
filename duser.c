@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <libgen.h>
+
+#if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 1)
+#	define HAVE_STRCHRNUL
+#endif
+
 #include "duser.h"
 
 char list_path[PATH_MAX];
@@ -24,6 +30,18 @@ int CMD_FLAG_LIST = 0;
 int CMD_FLAG_HELP = 0;
 int CMD_FLAG_LOOK = 0;
 int CMD_FLAG_NULL = 0;
+
+#ifndef HAVE_STRCHRNUL
+char *dstrchrnul(const char* s, int c)
+{
+	while(*s && *s != c)
+	{
+		s++;
+	}
+
+	return (char*)s;
+}
+#endif
 
 int user_del_list(const char* filename)
 {

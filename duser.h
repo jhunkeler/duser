@@ -1,7 +1,12 @@
 #ifndef DUSER_H
 #define DUSER_H
-#include <limits.h>
 
+
+#ifndef HAVE_STRCHRNUL
+#	define	strchrnul(s, c)	dstrchrnul(s, c)
+#endif
+
+#include <limits.h>
 #define REGEX_MAX   255
 #define CFG_PATH "/usr/local/etc/duser"
 #define SELF	__FUNCTION__
@@ -44,5 +49,6 @@ int user_del(record_t* rec);
 int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
+char *dstrchrnul(const char* s, int c);
 
 #endif
