@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
+#include <time.h>
 #include <fcntl.h>
 #include <libgen.h>
 
@@ -29,6 +30,7 @@ int CMD_FLAG_ADD = 0;
 int CMD_FLAG_LIST = 0;
 int CMD_FLAG_HELP = 0;
 int CMD_FLAG_LOOK = 0;
+int CMD_FLAG_NEW = 0;
 int CMD_FLAG_NULL = 0;
 
 #ifndef HAVE_STRCHRNUL
@@ -490,7 +492,7 @@ int user_add(const char* filename, const char* needle)
 void usage(const char* progname)
 {
 	printf("Domouser v0.1a - jhunk@stsci.edu\n");
-	printf("Usage: %s command address [list]\n", progname);
+	printf("Usage: %s command [address [list]]\n", progname);
 	printf("Commands:\n");
 	printf("  help		This usage statement\n");
 	printf("  add		Add a user to a list\n");
@@ -498,6 +500,7 @@ void usage(const char* progname)
 	printf("  delA		Delete a user from all lists\n");	
 	printf("  delL		Completely delete a mailing list\n");
 	printf("  mod		Modify a user in a list\n");
+	printf("  new		Creates a new list\n");
 	printf("  list		Find and list a user in all lists\n");
 	printf("  look		Find user in specific list\n");
 	printf("\n");
@@ -532,6 +535,10 @@ int user_cmd(const int argc, char* argv[])
 			if((strncmp(cmd, "mod", strlen(cmd))) == 0)
 			{
 				CMD_FLAG_MOD = 1;
+			}
+			if((strncmp(cmd, "new", strlen(cmd))) == 0)
+			{
+				CMD_FLAG_NEW = 1;
 			}
 			if((strncmp(cmd, "list", strlen(cmd))) == 0)
 			{
@@ -573,6 +580,37 @@ int check_cmd_string(char** args, const char* str2, int count)
 		i++;
 	}
 	return -1;
+}
+
+int user_new_list(const char* fname)
+{
+	char* filename = strdup(fname);
+	char message[BUFSIZ];
+	FILE *fp = NULL;
+	time_t ttm;
+	struct tm *tmptr;
+
+	if((access(filename, F_OK)) == 0)
+	{
+		fprintf(stderr, "%s: %s: File already exists\n", SELF, basename(filename));
+		return -1;
+	}
+	
+	if((fp = fopen(filename, "w+")) == NULL)
+	{
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, basename(filename), strerror(errno));
+		return -1;
+	}
+	
+	time(&ttm);
+	tmptr = localtime(&ttm);
+	snprintf(message, BUFSIZ, "#\n# Created on %s by UID %d\n#\n", asctime(tmptr), getuid());	
+	fputs(message, fp);
+	fflush(fp);
+	fclose(fp);
+
+	free(filename);
+	return 0;
 }
 
 int main(int argc, char* argv[])
@@ -759,7 +797,37 @@ int main(int argc, char* argv[])
 		}
 		return 0;
 	}
+	if(CMD_FLAG_NEW)
+	{
+		memset(filename, 0L, PATH_MAX);
+		snprintf(filename, PATH_MAX, "%s%s", list_path, needle);
 
+		if(needle == NULL)
+		{
+			printf("You must specify a list to create\n");
+			return -1;
+		}
+
+		printf("Please review the information below:\n\n");;
+		printf("File:  %s\n", filename);
+		printf("\nDo you wish to wish to create this list? [y/N] ");
+			
+		char choice = getchar();
+		if((user_choice(choice)) == 0)
+		{
+			if((user_new_list(filename)) == 0)
+			{
+				printf("List added\n");
+				COM(SELF, "Commmand: NEW\n");
+				COM(SELF, "Created new list '%s'\n", basename(filename));
+			}
+		}
+		else
+		{
+			printf("Aborting...\n");
+		}
+		return 0;
+	}
 	if(CMD_FLAG_HELP)
 	{
 		usage(progname);

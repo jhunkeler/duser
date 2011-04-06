@@ -49,6 +49,7 @@ int user_del(record_t* rec);
 int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
+int user_new_list(const char* fname);
 char *dstrchrnul(const char* s, int c);
 
 #endif
