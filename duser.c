@@ -20,6 +20,7 @@
 
 char list_path[PATH_MAX];
 char logfile[PATH_MAX];
+static char progname[FILENAME_MAX];
 
 int CMD_FLAG_NOOPT = 0;
 int CMD_FLAG_DEL = 0;
@@ -98,7 +99,7 @@ int user_del_all(const char* needle)
 		snprintf(tmp, PATH_MAX, "%s%s", list_path, list[i]);
 		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
-			printf("%20s\t%5d\n", basename(rp->file), rp->index);
+			printf("%20s\t%5d%23s\n", basename(rp->file), rp->index, rp->name);
 			processed.matches++;
 		}
 	}
@@ -584,7 +585,8 @@ int check_cmd_string(char** args, const char* str2, int count)
 
 int user_new_list(const char* fname)
 {
-	char* filename = strdup(fname);
+	char *filename = strdup(fname);
+	char *timestr;
 	char message[BUFSIZ];
 	FILE *fp = NULL;
 	time_t ttm;
@@ -604,7 +606,9 @@ int user_new_list(const char* fname)
 	
 	time(&ttm);
 	tmptr = localtime(&ttm);
-	snprintf(message, BUFSIZ, "#\n# Created on %s by UID %d\n#\n", asctime(tmptr), getuid());	
+	timestr = asctime(tmptr);
+	timestr[strlen(timestr)-1] = '\0';
+	snprintf(message, BUFSIZ, "#\n# Created by %s on %s. UID %d\n#\n", basename(progname), timestr, getuid());	
 	fputs(message, fp);
 	fflush(fp);
 	fclose(fp);
@@ -627,7 +631,7 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	const char* progname = argv[0];
+	strncpy(progname, argv[0], strlen(argv[0]));
 	const char* needle = argv[2];
 	const char* single_list = argv[3];
 

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall -Wextra
+CFLAGS=-O2 -Wall -Wextra
 LDFLAGS=
 PROG="duser"
 SRC=duser.c duser.h log.c cfg.c
