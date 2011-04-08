@@ -7,13 +7,15 @@
 #include <limits.h>
 #include <ctype.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
 #include <fcntl.h>
 #include <libgen.h>
 
-#if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 1)
+#ifdef _NLINUX_
 #	define HAVE_STRCHRNUL
+#	define HAVE_STRCASESTR
 #endif
 
 #include "duser.h"
@@ -33,18 +35,6 @@ int CMD_FLAG_HELP = 0;
 int CMD_FLAG_LOOK = 0;
 int CMD_FLAG_NEW = 0;
 int CMD_FLAG_NULL = 0;
-
-#ifndef HAVE_STRCHRNUL
-char *dstrchrnul(const char* s, int c)
-{
-	while(*s && *s != c)
-	{
-		s++;
-	}
-
-	return (char*)s;
-}
-#endif
 
 int user_del_list(const char* filename)
 {
@@ -347,10 +337,26 @@ int get_file_count(const char* path)
 
 	while((ep = readdir(dp)))
 	{
+#ifdef _NLINUX_
+		char path[PATH_MAX];
+		struct stat st;
+		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
+		if((stat(path, &st)) == 0)
+		{
+			if(S_ISREG(st.st_mode))
+			{
+				if(!strstr(ep->d_name, "."))
+				{
+					file_count++;
+				}
+			}
+		}
+#else
 		if(ep->d_type == DT_REG && !strstr(ep->d_name, "."))
 		{
 			file_count++;
 		}
+#endif
 	}
 	closedir(dp);
 
@@ -387,6 +393,24 @@ char** get_file_list(const char* path, int count)
 	}
 	while((ep = readdir(dp)))
 	{
+#ifdef _NLINUX_
+		char path[PATH_MAX];
+		struct stat st;
+		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
+		if((stat(path, &st)) == 0)
+		{
+			if(S_ISREG(st.st_mode))
+			{
+				if(!strstr(ep->d_name, "."))
+				{
+					list[i] = (char*)malloc(sizeof(char) * strlen(ep->d_name)+1);
+					memset(list[i], 0L, strlen(ep->d_name)+1);
+					strncpy(list[i], ep->d_name, strlen(ep->d_name)+1);
+					i++;
+				}
+			}
+		}
+#else
 		if(ep->d_type == DT_REG && !strstr(ep->d_name, "."))
 		{
 			list[i] = (char*)malloc(sizeof(char) * strlen(ep->d_name)+1);
@@ -394,6 +418,7 @@ char** get_file_list(const char* path, int count)
 			strncpy(list[i], ep->d_name, strlen(ep->d_name)+1);
 			i++;
 		}
+#endif
 	}
 	closedir(dp);
 	return list;
@@ -511,52 +536,49 @@ void usage(const char* progname)
 int user_cmd(const int argc, char* argv[])
 {
 	const char* cmd = argv[1];
-	int i = 2;
 
-	while(i < argc)
+	if(argc < 2)
+		return CMD_FLAG_NULL;
+	
+	if(cmd)
 	{
-		if(cmd)
+		if((strncmp(cmd, "del", strlen(cmd))) == 0)
 		{
-			if((strncmp(cmd, "del", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_DEL = 1;
-			}
-			if((strncmp(cmd, "delA", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_DEL_ALL = 1;
-			}
-			if((strncmp(cmd, "delL", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_DEL_LIST = 1;
-			}
-			if((strncmp(cmd, "add", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_ADD = 1;
-			}
-			if((strncmp(cmd, "mod", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_MOD = 1;
-			}
-			if((strncmp(cmd, "new", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_NEW = 1;
-			}
-			if((strncmp(cmd, "list", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_LIST = 1;
-			}
-			if((strncmp(cmd, "look", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_LOOK = 1;
-			}
-			if((strncmp(cmd, "help", strlen(cmd))) == 0)
-			{
-				CMD_FLAG_HELP = 1;
-			}
+			CMD_FLAG_DEL = 1;
 		}
-		i++;
+		if((strncmp(cmd, "delA", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_DEL_ALL = 1;
+		}
+		if((strncmp(cmd, "delL", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_DEL_LIST = 1;
+		}
+		if((strncmp(cmd, "add", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_ADD = 1;
+		}
+		if((strncmp(cmd, "mod", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_MOD = 1;
+		}
+		if((strncmp(cmd, "new", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_NEW = 1;
+		}
+		if((strncmp(cmd, "list", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_LIST = 1;
+		}
+		if((strncmp(cmd, "look", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_LOOK = 1;
+		}
+		if((strncmp(cmd, "help", strlen(cmd))) == 0)
+		{
+			CMD_FLAG_HELP = 1;
+		}
 	}
-
 
 	return 0;
 }
@@ -631,9 +653,14 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
+	char filename[PATH_MAX];
+	record_t *rec;
 	strncpy(progname, argv[0], strlen(argv[0]));
 	const char* needle = argv[2];
 	const char* single_list = argv[3];
+
+	if(single_list)	
+		snprintf(filename, PATH_MAX, "%s%s", list_path, single_list);
 
 	if(argc < 3)
 	{
@@ -641,12 +668,8 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	char filename[PATH_MAX];
-	record_t *rec;
 	stats_init(&processed);
 	user_cmd(argc, argv);
-
-	snprintf(filename, PATH_MAX, "%s%s", list_path, single_list);
 
 	if((strval(needle)) != 0)
 	{
@@ -835,6 +858,11 @@ int main(int argc, char* argv[])
 	if(CMD_FLAG_HELP)
 	{
 		usage(progname);
+	}
+	if(CMD_FLAG_NULL)
+	{
+		fprintf(stderr, "Command not specified\n");
+		exit(1);
 	}
 
 	return 0;

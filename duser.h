@@ -1,11 +1,6 @@
 #ifndef DUSER_H
 #define DUSER_H
 
-
-#ifndef HAVE_STRCHRNUL
-#	define	strchrnul(s, c)	dstrchrnul(s, c)
-#endif
-
 #include <limits.h>
 #define REGEX_MAX   255
 #define CFG_PATH "/usr/local/etc/duser"
@@ -50,6 +45,9 @@ int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
 int user_new_list(const char* fname);
-char *dstrchrnul(const char* s, int c);
+#ifdef _NLINUX_
+char *strcasestr(const char *s, const char *find);
+char *strchrnul(const char* s, int c);
+#endif
 
 #endif
