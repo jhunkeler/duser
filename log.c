@@ -35,7 +35,7 @@ extern char logfile[PATH_MAX];
 int logcleanup()
 {
     int status = 0;
-    if((access(logfile, W_OK)) == 0)
+    if((status = access(logfile, W_OK)) == 0)
     {
         status = unlink(logfile);
     }
