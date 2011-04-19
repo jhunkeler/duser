@@ -48,9 +48,6 @@ typedef struct record_t
     int pad3;
 } record_t;
 
-int cfg_open(const char* filename);
-void cfg_close();
-int cfg_get_key(char* val, const char* key);
 int logcleanup();
 int COM(const char* func, char *format, ...);
 record_t* find_in_file(const char* filename, const char* needle);

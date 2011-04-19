@@ -26,8 +26,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include "duser.h"
+#include "cfg.h"
 
-#define CFG_MAX		255
 FILE *cfgfp;
 
 int cfg_open(const char* filename)

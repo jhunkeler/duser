@@ -38,6 +38,7 @@
 #	define HAVE_STRCASESTR
 #endif
 
+#include "cfg.h"
 #include "duser.h"
 
 char list_path[PATH_MAX];

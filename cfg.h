@@ -20,7 +20,10 @@
 
 #ifndef CFG_H
 #define CFG_H
+
+#define CFG_MAX		255
 int cfg_open(const char* filename); 
 void cfg_close(); 
-int cfg_get_key(char* val, char* key); 
+int cfg_get_key(char* val, const char* key); 
+
 #endif
