@@ -1,0 +1,10 @@
+CC=gcc
+CFLAGS=-O2 -Wextra -Wall -D_NLINUX_
+LDFLAGS=
+PROG="duser"
+SRC=compat.c duser.c duser.h log.c cfg.c
+all:
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG) $(SRC)
+	
+clean:
+	rm -rf $(PROG)
