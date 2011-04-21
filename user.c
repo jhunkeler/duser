@@ -428,7 +428,7 @@ int user_list(const char* needle)
 		record_t *rp;
 		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
-			printf("%20s\t%5d%23s\n", basename(rp->file), rp->index, rp->name);
+			printf(FMTLIST, basename(rp->file), rp->index, rp->name);
 			processed.matches++;
 		}
 	}
