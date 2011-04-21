@@ -48,6 +48,9 @@ typedef struct record_t
     int pad3;
 } record_t;
 
+void usage(const char* progname);
+int strval(const char* str);
+int strfind(const char* str1, const char* str2);
 int logcleanup();
 int COM(const char* func, char *format, ...);
 record_t* find_in_file(const char* filename, const char* needle);
@@ -58,6 +61,8 @@ void stats_init(stats_t *s);
 int user_list(const char* needle);
 int find_in_file_ex(record_t* rec);
 int user_del(record_t* rec);
+int user_del_all(const char* needle);
+int user_del_list(const char* filename);
 int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
