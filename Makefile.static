@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-O2 -Wall -Wextra -static
 LDFLAGS=
 PROG="duser"
-SRC=duser.c duser.h user.c util.c log.c cfg.c
+SRC=duser.c user.c util.c log.c cfg.c
 all:
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG) $(SRC)
 	strip -s $(PROG)
