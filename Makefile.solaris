@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2 -Wextra -Wall -D_NLINUX_
+CFLAGS=-O2 -Wall -D_NLINUX_
 LDFLAGS=
 PROG="duser"
 SRC=compat.c duser.c util.c user.c log.c cfg.c
