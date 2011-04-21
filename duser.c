@@ -33,6 +33,7 @@
 #include <fcntl.h>
 #include <libgen.h>
 
+#include "version.h"
 #include "cfg.h"
 #include "duser.h"
 
@@ -52,9 +53,15 @@ int CMD_FLAG_LOOK = 0;
 int CMD_FLAG_NEW = 0;
 int CMD_FLAG_NULL = 0;
 
-void usage(const char* progname)
+void version()
 {
-	printf("Domouser v0.1a - jhunk@stsci.edu\n");
+	printf("%s v%s.%s%s (%s %s)\n", 
+		progname, VER_MAJOR, VER_MINOR, VER_OTH, __DATE__, __TIME__);
+}
+
+void usage()
+{
+	version();
 	printf("Usage: %s command [address [list]]\n", progname);
 	printf("Commands:\n");
 	printf("  help		This usage statement\n");
@@ -72,6 +79,7 @@ void usage(const char* progname)
 
 int main(int argc, char* argv[])
 {
+	strncpy(progname, argv[0], strlen(argv[0]));
 	if((cfg_open(CFG_PATH)) == 0)
 	{
 		cfg_get_key(list_path, "path");
@@ -86,7 +94,6 @@ int main(int argc, char* argv[])
 
 	char filename[PATH_MAX];
 	record_t *rec;
-	strncpy(progname, argv[0], strlen(argv[0]));
 	const char* needle = argv[2];
 	const char* single_list = argv[3];
 
@@ -95,7 +102,7 @@ int main(int argc, char* argv[])
 
 	if(argc < 3)
 	{
-		usage(progname);
+		usage();
 		return 0;
 	}
 
@@ -288,7 +295,7 @@ int main(int argc, char* argv[])
 	}
 	if(CMD_FLAG_HELP)
 	{
-		usage(progname);
+		usage();
 	}
 	if(CMD_FLAG_NULL)
 	{

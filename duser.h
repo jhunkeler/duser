@@ -25,6 +25,12 @@
 #define REGEX_MAX   255
 #define CFG_PATH "/usr/local/etc/duser"
 #define SELF	__FUNCTION__
+#ifndef _NLINUX_
+#	define FMTLIST "%20s\t%5d%23s\n"
+#else
+#	define FMTLIST "%20s\t%5d%16s\n"
+#endif
+
 typedef struct stats_t
 {
     int lines;
@@ -34,6 +40,7 @@ typedef struct stats_t
     int deleted;
     int modified;
 } stats_t;
+
 //Global statistics struct
 stats_t processed;
 
@@ -48,7 +55,7 @@ typedef struct record_t
     int pad3;
 } record_t;
 
-void usage(const char* progname);
+void usage();
 int strval(const char* str);
 int strfind(const char* str1, const char* str2);
 int logcleanup();
