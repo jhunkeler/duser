@@ -1,0 +1,5 @@
+* Modify CFG_FILE in duser.h to point to the path where your configuration file will be stored.
+* Configuration file supports two keys: "path", and "logfile"
+	path /location/of/majordomo/lists/
+	logfile /path/to/log/file
+
