@@ -1,0 +1,49 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.63])
+AC_INIT([duser], [1.0.0], [jhunkeler@stsci.edu], [duser], [https://github.com/jhunkeler/duser.git])
+AC_CANONICAL_TARGET
+
+AM_INIT_AUTOMAKE(1.11.1)
+
+AC_CONFIG_SRCDIR([config.h.in])
+AC_CONFIG_HEADERS([config.h])
+
+# Checks for programs.
+AC_PROG_CC
+AM_PROG_CC_C_O
+AC_PROG_INSTALL
+
+# Checks for libraries.
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h limits.h stdlib.h string.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memset strcasecmp strdup strerror strncasecmp strstr])
+
+# Set compiler options based on platform.
+case "$host_os" in
+	*linux*) 
+		echo "==========================================================="
+		echo "Setting up build environment for ${target_cpu}${target_os}"
+		echo "==========================================================="
+		CFLAGS="-O2 -Wall -Wextra -I../include" 
+	;;
+	*solaris*) 
+                echo "==========================================================="
+                echo "Setting up build environment for ${target_cpu}${target_os}"
+                echo "==========================================================="
+		CFLAGS="-O2 -Wall -D_NLINUX_" 
+	;;
+	*)
+		AC_MSG_ERROR([duser does not currently support your platform])
+	;;
+esac
+
+AC_OUTPUT([Makefile src/Makefile])
