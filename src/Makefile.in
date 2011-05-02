@@ -48,8 +48,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_duser_OBJECTS = duser.$(OBJEXT) user.$(OBJEXT) util.$(OBJEXT) \
-	log.$(OBJEXT) cfg.$(OBJEXT)
+am_duser_OBJECTS = comat.$(OBJEXT) duser.$(OBJEXT) user.$(OBJEXT) \
+	util.$(OBJEXT) log.$(OBJEXT) cfg.$(OBJEXT)
 duser_OBJECTS = $(am_duser_OBJECTS)
 duser_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
@@ -163,7 +163,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-duser_SOURCES = duser.c \
+duser_SOURCES = comat.c \
+		duser.c \
 		user.c \
 		util.c \
 		log.c \
@@ -251,6 +252,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/user.Po@am__quote@
