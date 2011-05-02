@@ -21,6 +21,10 @@
 #ifndef DUSER_H
 #define DUSER_H
 
+#ifdef HAVE_CONFIG_H
+	#include "config.h"
+#endif
+
 #include <limits.h>
 #define REGEX_MAX   255
 #define SELF	__FUNCTION__
