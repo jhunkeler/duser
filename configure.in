@@ -7,8 +7,8 @@ AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE(1.11.1)
 
-AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([src/duser.c])
 
 # Checks for programs.
 AC_PROG_CC
@@ -18,32 +18,35 @@ AC_PROG_INSTALL
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h limits.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS_ONCE([fcntl.h limits.h stdlib.h string.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset strcasecmp strdup strerror strncasecmp strstr])
+AC_CHECK_FUNCS_ONCE([memset strcasecmp strdup strerror strncasecmp strstr])
 
-# Set compiler options based on platform.
+# Checks for currently used operating system.
 case "$host_os" in
 	*linux*) 
-		echo "==========================================================="
-		echo "Setting up build environment for ${target_cpu}${target_os}"
-		echo "==========================================================="
 		CFLAGS="-O2 -Wall -Wextra -I../include" 
 	;;
 	*solaris*) 
-                echo "==========================================================="
-                echo "Setting up build environment for ${target_cpu}${target_os}"
-                echo "==========================================================="
-		CFLAGS="-O2 -Wall -D_NLINUX_" 
+		CFLAGS="-O2 -Wall -D_NLINUX_ -I../include"
 	;;
 	*)
-		AC_MSG_ERROR([duser does not currently support your platform])
+		CFLAGS="-O2 -Wall -Wextra -I../include"
 	;;
 esac
+
+# Figure out where everything goes in the filesystem
+AC_ARG_WITH(config-path,
+	AC_HELP_STRING([--with-config-path=<pathname>],
+		[specify the path for duser config files (default: /usr/local/etc/duser)]),
+	[CFGPATH="$withval"], [CFGPATH="/usr/local/etc/duser"])
+AC_SUBST(CONFIGDIR)
+
+AC_DEFINE_UNQUOTED([CFG_PATH], "$CFGPATH", [duser configuration path])
 
 AC_OUTPUT([Makefile src/Makefile])
