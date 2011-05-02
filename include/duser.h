@@ -23,7 +23,6 @@
 
 #include <limits.h>
 #define REGEX_MAX   255
-#define CFG_PATH "/usr/local/etc/duser"
 #define SELF	__FUNCTION__
 #ifndef _NLINUX_
 #	define FMTLIST "%20s\t%5d%23s\n"

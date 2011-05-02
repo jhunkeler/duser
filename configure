@@ -600,7 +600,8 @@ PACKAGE_VERSION='1.0.0'
 PACKAGE_STRING='duser 1.0.0'
 PACKAGE_BUGREPORT='jhunkeler@stsci.edu'
 
-ac_unique_file="config.h.in"
+ac_unique_file="src/duser.c"
+ac_header_list=
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -637,9 +638,11 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
+ac_func_list=
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
+CONFIGDIR
 LIBOBJS
 EGREP
 GREP
@@ -736,6 +739,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_dependency_tracking
+with_config_path
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1380,6 +1384,13 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
 
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-config-path=<pathname>
+                          specify the path for duser config files (default:
+                          /usr/local/etc/duser)
+
 Some influential environment variables:
   CC          C compiler command
   CFLAGS      C compiler flags
@@ -1747,6 +1758,17 @@ $as_echo "$as_me: creating cache $cache_file" >&6;}
   >$cache_file
 fi
 
+ac_header_list="$ac_header_list fcntl.h"
+ac_header_list="$ac_header_list limits.h"
+ac_header_list="$ac_header_list stdlib.h"
+ac_header_list="$ac_header_list string.h"
+ac_header_list="$ac_header_list unistd.h"
+ac_func_list="$ac_func_list memset"
+ac_func_list="$ac_func_list strcasecmp"
+ac_func_list="$ac_func_list strdup"
+ac_func_list="$ac_func_list strerror"
+ac_func_list="$ac_func_list strncasecmp"
+ac_func_list="$ac_func_list strstr"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -2487,8 +2509,8 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
-
 ac_config_headers="$ac_config_headers config.h"
+
 
 
 # Checks for programs.
@@ -4470,8 +4492,7 @@ done
 
 
 
-
-for ac_header in fcntl.h limits.h stdlib.h string.h unistd.h
+for ac_header in $ac_header_list
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -4620,6 +4641,30 @@ _ACEOF
 fi
 
 done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -4977,9 +5022,7 @@ fi
 
 
 
-
-
-for ac_func in memset strcasecmp strdup strerror strncasecmp strstr
+for ac_func in $ac_func_list
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -5080,26 +5123,63 @@ fi
 done
 
 
-# Set compiler options based on platform.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Checks for currently used operating system.
 case "$host_os" in
 	*linux*)
-		echo "==========================================================="
-		echo "Setting up build environment for ${target_cpu}${target_os}"
-		echo "==========================================================="
 		CFLAGS="-O2 -Wall -Wextra -I../include"
 	;;
 	*solaris*)
-                echo "==========================================================="
-                echo "Setting up build environment for ${target_cpu}${target_os}"
-                echo "==========================================================="
-		CFLAGS="-O2 -Wall -D_NLINUX_"
+		CFLAGS="-O2 -Wall -D_NLINUX_ -I../include"
 	;;
 	*)
-		{ { $as_echo "$as_me:$LINENO: error: duser does not currently support your platform" >&5
-$as_echo "$as_me: error: duser does not currently support your platform" >&2;}
-   { (exit 1); exit 1; }; }
+		CFLAGS="-O2 -Wall -Wextra -I../include"
 	;;
 esac
+
+# Figure out where everything goes in the filesystem
+
+# Check whether --with-config-path was given.
+if test "${with_config_path+set}" = set; then
+  withval=$with_config_path; CFGPATH="$withval"
+else
+  CFGPATH="/usr/local/etc/duser"
+fi
+
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define CFG_PATH "$CFGPATH"
+_ACEOF
+
 
 ac_config_files="$ac_config_files Makefile src/Makefile"
 
