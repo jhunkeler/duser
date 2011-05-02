@@ -1769,6 +1769,8 @@ ac_func_list="$ac_func_list strdup"
 ac_func_list="$ac_func_list strerror"
 ac_func_list="$ac_func_list strncasecmp"
 ac_func_list="$ac_func_list strstr"
+ac_func_list="$ac_func_list strchrnul"
+ac_func_list="$ac_func_list strcasestr"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -2509,7 +2511,7 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
-ac_config_headers="$ac_config_headers config.h"
+ac_config_headers="$ac_config_headers include/config.h"
 
 
 
@@ -5151,16 +5153,37 @@ done
 
 
 
+
+
+
+
+
+
+
+
 # Checks for currently used operating system.
 case "$host_os" in
 	*linux*)
 		CFLAGS="-O2 -Wall -Wextra -I../include"
+
+cat >>confdefs.h <<\_ACEOF
+#define __NLINUX__ 1
+_ACEOF
+
 	;;
 	*solaris*)
-		CFLAGS="-O2 -Wall -D_NLINUX_ -I../include"
+		# The STSCI Build of GNU GCC has a broken -Wextra handler
+		CFLAGS="-O2 -Wall -I../include"
+
+cat >>confdefs.h <<\_ACEOF
+#define __NSOLARIS__ 1
+_ACEOF
+
 	;;
 	*)
-		CFLAGS="-O2 -Wall -Wextra -I../include"
+		{ { $as_echo "$as_me:$LINENO: error: duser does not currently support your platform" >&5
+$as_echo "$as_me: error: duser does not currently support your platform" >&2;}
+   { (exit 1); exit 1; }; }
 	;;
 esac
 
@@ -5810,7 +5833,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
+    "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;

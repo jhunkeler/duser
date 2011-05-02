@@ -7,7 +7,7 @@ AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE(1.11.1)
 
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_SRCDIR([src/duser.c])
 
 # Checks for programs.
@@ -25,18 +25,21 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS_ONCE([memset strcasecmp strdup strerror strncasecmp strstr])
+AC_CHECK_FUNCS_ONCE([memset strcasecmp strdup strerror strncasecmp strstr strchrnul strcasestr])
 
 # Checks for currently used operating system.
 case "$host_os" in
 	*linux*) 
 		CFLAGS="-O2 -Wall -Wextra -I../include" 
+		AC_DEFINE([__NLINUX__], 1, [host operating system is linux])
 	;;
-	*solaris*) 
-		CFLAGS="-O2 -Wall -D_NLINUX_ -I../include"
+	*solaris*)
+		# The STSCI Build of GNU GCC has a broken -Wextra handler  
+		CFLAGS="-O2 -Wall -I../include"
+		AC_DEFINE([__NSOLARIS__], 1, [host operating system is solaris])
 	;;
 	*)
-		CFLAGS="-O2 -Wall -Wextra -I../include"
+		AC_MSG_ERROR([duser does not currently support your platform])	
 	;;
 esac
 

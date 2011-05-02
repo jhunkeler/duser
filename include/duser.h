@@ -22,13 +22,13 @@
 #define DUSER_H
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+#include "config.h"
 #endif
 
 #include <limits.h>
 #define REGEX_MAX   255
 #define SELF	__FUNCTION__
-#ifndef _NLINUX_
+#ifndef __NSOLARIS__
 #	define FMTLIST "%20s\t%5d%23s\n"
 #else
 #	define FMTLIST "%20s\t%5d%16s\n"
@@ -77,7 +77,7 @@ int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
 int user_new_list(const char* fname);
-#ifdef _NLINUX_
+#ifdef __NSOLARIS__
 char *strcasestr(const char *s, const char *find);
 char *strchrnul(const char* s, int c);
 #endif
