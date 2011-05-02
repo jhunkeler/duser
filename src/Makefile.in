@@ -32,6 +32,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
+target_triplet = @target@
 sbin_PROGRAMS = duser$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -45,12 +48,10 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_duser_OBJECTS = duser-duser.$(OBJEXT) duser-user.$(OBJEXT) \
-	duser-util.$(OBJEXT) duser-log.$(OBJEXT) duser-cfg.$(OBJEXT)
+am_duser_OBJECTS = duser.$(OBJEXT) user.$(OBJEXT) util.$(OBJEXT) \
+	log.$(OBJEXT) cfg.$(OBJEXT)
 duser_OBJECTS = $(am_duser_OBJECTS)
 duser_LDADD = $(LDADD)
-duser_LINK = $(CCLD) $(duser_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -118,14 +119,22 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -145,11 +154,14 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
+target = @target@
 target_alias = @target_alias@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-duser_CFLAGS = -O2 -Wall -Wextra -I../include
 duser_SOURCES = duser.c \
 		user.c \
 		util.c \
@@ -229,7 +241,7 @@ clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
 duser$(EXEEXT): $(duser_OBJECTS) $(duser_DEPENDENCIES) 
 	@rm -f duser$(EXEEXT)
-	$(duser_LINK) $(duser_OBJECTS) $(duser_LDADD) $(LIBS)
+	$(LINK) $(duser_OBJECTS) $(duser_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -237,11 +249,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser-cfg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser-duser.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser-log.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser-user.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser-util.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/user.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -256,76 +268,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-duser-duser.o: duser.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-duser.o -MD -MP -MF $(DEPDIR)/duser-duser.Tpo -c -o duser-duser.o `test -f 'duser.c' || echo '$(srcdir)/'`duser.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-duser.Tpo $(DEPDIR)/duser-duser.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='duser.c' object='duser-duser.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-duser.o `test -f 'duser.c' || echo '$(srcdir)/'`duser.c
-
-duser-duser.obj: duser.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-duser.obj -MD -MP -MF $(DEPDIR)/duser-duser.Tpo -c -o duser-duser.obj `if test -f 'duser.c'; then $(CYGPATH_W) 'duser.c'; else $(CYGPATH_W) '$(srcdir)/duser.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-duser.Tpo $(DEPDIR)/duser-duser.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='duser.c' object='duser-duser.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-duser.obj `if test -f 'duser.c'; then $(CYGPATH_W) 'duser.c'; else $(CYGPATH_W) '$(srcdir)/duser.c'; fi`
-
-duser-user.o: user.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-user.o -MD -MP -MF $(DEPDIR)/duser-user.Tpo -c -o duser-user.o `test -f 'user.c' || echo '$(srcdir)/'`user.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-user.Tpo $(DEPDIR)/duser-user.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='user.c' object='duser-user.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-user.o `test -f 'user.c' || echo '$(srcdir)/'`user.c
-
-duser-user.obj: user.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-user.obj -MD -MP -MF $(DEPDIR)/duser-user.Tpo -c -o duser-user.obj `if test -f 'user.c'; then $(CYGPATH_W) 'user.c'; else $(CYGPATH_W) '$(srcdir)/user.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-user.Tpo $(DEPDIR)/duser-user.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='user.c' object='duser-user.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-user.obj `if test -f 'user.c'; then $(CYGPATH_W) 'user.c'; else $(CYGPATH_W) '$(srcdir)/user.c'; fi`
-
-duser-util.o: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-util.o -MD -MP -MF $(DEPDIR)/duser-util.Tpo -c -o duser-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-util.Tpo $(DEPDIR)/duser-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='duser-util.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
-
-duser-util.obj: util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-util.obj -MD -MP -MF $(DEPDIR)/duser-util.Tpo -c -o duser-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-util.Tpo $(DEPDIR)/duser-util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='duser-util.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
-
-duser-log.o: log.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-log.o -MD -MP -MF $(DEPDIR)/duser-log.Tpo -c -o duser-log.o `test -f 'log.c' || echo '$(srcdir)/'`log.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-log.Tpo $(DEPDIR)/duser-log.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='log.c' object='duser-log.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-log.o `test -f 'log.c' || echo '$(srcdir)/'`log.c
-
-duser-log.obj: log.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-log.obj -MD -MP -MF $(DEPDIR)/duser-log.Tpo -c -o duser-log.obj `if test -f 'log.c'; then $(CYGPATH_W) 'log.c'; else $(CYGPATH_W) '$(srcdir)/log.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-log.Tpo $(DEPDIR)/duser-log.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='log.c' object='duser-log.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-log.obj `if test -f 'log.c'; then $(CYGPATH_W) 'log.c'; else $(CYGPATH_W) '$(srcdir)/log.c'; fi`
-
-duser-cfg.o: cfg.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-cfg.o -MD -MP -MF $(DEPDIR)/duser-cfg.Tpo -c -o duser-cfg.o `test -f 'cfg.c' || echo '$(srcdir)/'`cfg.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-cfg.Tpo $(DEPDIR)/duser-cfg.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg.c' object='duser-cfg.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-cfg.o `test -f 'cfg.c' || echo '$(srcdir)/'`cfg.c
-
-duser-cfg.obj: cfg.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -MT duser-cfg.obj -MD -MP -MF $(DEPDIR)/duser-cfg.Tpo -c -o duser-cfg.obj `if test -f 'cfg.c'; then $(CYGPATH_W) 'cfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/duser-cfg.Tpo $(DEPDIR)/duser-cfg.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cfg.c' object='duser-cfg.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(duser_CFLAGS) $(CFLAGS) -c -o duser-cfg.obj `if test -f 'cfg.c'; then $(CYGPATH_W) 'cfg.c'; else $(CYGPATH_W) '$(srcdir)/cfg.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
