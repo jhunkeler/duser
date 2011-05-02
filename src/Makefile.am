@@ -1,6 +1,7 @@
 sbin_PROGRAMS= duser
 
-duser_SOURCES=	duser.c \
+duser_SOURCES=	compat.c \
+		duser.c \
 		user.c \
 		util.c \
 		log.c \

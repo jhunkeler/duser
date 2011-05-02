@@ -32,10 +32,6 @@
 #include <time.h>
 #include <fcntl.h>
 #include <libgen.h>
-#ifdef _NLINUX_
-#	define HAVE_STRCHRNUL
-#	define HAVE_STRCASESTR
-#endif
 #include "duser.h"
 
 extern char list_path[PATH_MAX];
@@ -320,7 +316,7 @@ int get_file_count(const char* path)
 
 	while((ep = readdir(dp)))
 	{
-#ifdef _NLINUX_
+#ifdef __NSOLARIS__
 		char path[PATH_MAX];
 		struct stat st;
 		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
@@ -376,7 +372,7 @@ char** get_file_list(const char* path, int count)
 	}
 	while((ep = readdir(dp)))
 	{
-#ifdef _NLINUX_
+#ifdef __NSOLARIS__
 		char path[PATH_MAX];
 		struct stat st;
 		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);

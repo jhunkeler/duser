@@ -1,4 +1,4 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
+/* include/config.h.in.  Generated from configure.in by autoheader.  */
 
 /* duser configuration path */
 #undef CFG_PATH
@@ -30,6 +30,12 @@
 
 /* Define to 1 if you have the `strcasecmp' function. */
 #undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strcasestr' function. */
+#undef HAVE_STRCASESTR
+
+/* Define to 1 if you have the `strchrnul' function. */
+#undef HAVE_STRCHRNUL
 
 /* Define to 1 if you have the `strdup' function. */
 #undef HAVE_STRDUP
@@ -84,6 +90,12 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* host operating system is linux */
+#undef __NLINUX__
+
+/* host operating system is solaris */
+#undef __NSOLARIS__
 
 /* Define to rpl_malloc if the replacement function should be used. */
 #undef malloc
