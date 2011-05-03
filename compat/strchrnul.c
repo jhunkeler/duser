@@ -18,16 +18,27 @@
 * along with duser. If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef COMPAT_H
-#define COMPAT_H
-
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "compat.h"
 
-char *strchrnul(const char* s, int c);
-char *strcasestr(const char *s, const char *find);
-
-#endif
-
+/*
+ * Locate a char in a string
+ *
+ * The strchr() function returns a pointer to the first occurrence 
+ * of the character c in the string s. 
+ *
+ * The strrchr() function returns a pointer to the last occurrence 
+ * of the character c in the string s. 
+ *
+ * The strchrnul() function is like strchr() except that 
+ * if c is not found in s, then it returns a pointer to the 
+ * null byte at the end of s, rather than NULL. 
+ */
+char *strchrnul(const char* s, int c)
+{
+    while(*s && *s != c)
+    {
+        s++;
+    }
+}

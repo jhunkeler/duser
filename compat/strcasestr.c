@@ -21,22 +21,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "compat.h"
 
-#ifndef HAVE_STRCHRNUL
-#undef strchrnul
-char *strchrnul(const char* s, int c)
-{
-    while(*s && *s != c)
-    {
-        s++;
-    }
-    return (char*)s;
-}
-#endif
-
-#ifndef HAVE_STRCASESTR
-#undef strcasestr
+/*
+ * Locate substring
+ *
+ * The strstr() function finds the first occurrence of the substring needle 
+ * in the string haystack. The terminating '\0' characters are not compared. 
+ *
+ * The strcasestr() function is like strstr(), but ignores the 
+ * case of both arguments. 
+ */
 char *strcasestr(const char *s, const char *find)
 {
     char c, sc;
@@ -55,5 +49,3 @@ char *strcasestr(const char *s, const char *find)
     }
     return ((char *)s);
 }
-#endif
-
