@@ -58,11 +58,11 @@ typedef struct record_t
     int pad3;
 } record_t;
 
-void usage();
+void usage(void);
 int strval(const char* str);
 int strfind(const char* str1, const char* str2);
-int logcleanup();
-int COM(const char* func, char *format, ...);
+int logcleanup(void);
+int COM(const char* func, const char *format, ...);
 record_t* find_in_file(const char* filename, const char* needle);
 int get_file_count(const char* path);
 char** get_file_list(const char* path, int count);
@@ -77,6 +77,5 @@ int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
 int user_new_list(const char* fname);
-char *strcasestr(const char *s, const char *find);
-char *strchrnul(const char* s, int c);
+int check_cmd_string(char** args, const char* str2, int count);
 #endif

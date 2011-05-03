@@ -189,7 +189,6 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-LIBCOMPAT_LDADDS = $(top_builddir)/compat/libdusercompat.a
 AM_CPPFLAGS = -I$(top_srcdir)/include
 duser_LDFLAGS = -L$(top_srcdir)/compat
 duser_SOURCES = duser.c \

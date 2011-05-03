@@ -5,5 +5,5 @@
 #define VER_MINOR "0"
 #define VER_OTH " "
 
-void version();
+void version(void);
 #endif
