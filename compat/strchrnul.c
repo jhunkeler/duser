@@ -18,9 +18,8 @@
 * along with duser. If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+#include "strchrnul.h"
 
 /*
  * Locate a char in a string
@@ -35,10 +34,12 @@
  * if c is not found in s, then it returns a pointer to the 
  * null byte at the end of s, rather than NULL. 
  */
-char *strchrnul(const char* s, int c)
+char *
+strchrnul (const char *s, int c_in)
 {
-    while(*s && *s != c)
-    {
-        s++;
-    }
+  char c = c_in;
+  while (*s && (*s != c))
+    s++;
+
+  return (char *) s;
 }

@@ -23,7 +23,7 @@
 
 #define CFG_MAX		255
 int cfg_open(const char* filename); 
-void cfg_close(); 
+void cfg_close(void); 
 int cfg_get_key(char* val, const char* key); 
 
 #endif
