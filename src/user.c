@@ -316,7 +316,7 @@ int get_file_count(const char* path)
 
 	while((ep = readdir(dp)))
 	{
-#ifdef __NSOLARIS__
+#ifdef HAVE_SOLARIS
 		char path[PATH_MAX];
 		struct stat st;
 		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
@@ -372,7 +372,7 @@ char** get_file_list(const char* path, int count)
 	}
 	while((ep = readdir(dp)))
 	{
-#ifdef __NSOLARIS__
+#ifdef HAVE_SOLARIS
 		char path[PATH_MAX];
 		struct stat st;
 		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
