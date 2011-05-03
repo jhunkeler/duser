@@ -159,16 +159,16 @@ int user_del(record_t* rec)
 	int bytes = 0;
 	int bytes_total = 0;
 	char buf[REGEX_MAX];
-	char tmpfile[255];
-	snprintf(tmpfile, sizeof(tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
-	if((fd = mkstemp(tmpfile)) < 0 || (tfp = fdopen(fd, "r+")) == NULL)
+	char _tmpfile[255];
+	snprintf(_tmpfile, sizeof(_tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
+	if((fd = mkstemp(_tmpfile)) < 0 || (tfp = fdopen(fd, "r+")) == NULL)
 	{
 		if(fd != -1)
 		{
 			close(fd);
-			unlink(tmpfile);
+			unlink(_tmpfile);
 		}
-		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, tmpfile, strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, _tmpfile, strerror(errno));
 		exit(1);
 	}
 	
@@ -220,7 +220,10 @@ int user_del(record_t* rec)
 
 	fclose(fp);
 	close(fd);
-	unlink(tmpfile);
+
+	/* unistd.h requires this be a (const char *) not (struct FILE * (*)(void)) */
+	/* -- extrarius -- */
+	unlink((const char *)tmpfile);
 	
 	if(bytes_total)
 		return bytes_total;
@@ -266,7 +269,7 @@ record_t* find_in_file(const char* filename, const char* needle)
 	rptr->index = 0;
 	rptr->match = 0;
 	
-	int index = 0;
+	int _index = 0;
 	
 	FILE *fp;
 	char *fname = strdup(filename);
@@ -287,9 +290,9 @@ record_t* find_in_file(const char* filename, const char* needle)
 		{
 			snprintf(rptr->name, REGEX_MAX, "%s", cmp); 
 			rptr->match = 1;
-			rptr->index = index;
+			rptr->index = _index;
 		}
-		index++;
+		_index++;
 		processed.lines++;
 	}
 

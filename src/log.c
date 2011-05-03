@@ -43,7 +43,7 @@ int logcleanup()
     return status;
 }
 
-int COM(const char* func, char *format, ...)
+int COM(const char* func, const char *format, ...)
 {
     struct tm *logtm;
     time_t logtime = time(NULL);
