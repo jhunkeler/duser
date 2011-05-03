@@ -186,7 +186,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LIBRARIES = libdusercompat.a
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include/compat
 libdusercompat_a_SOURCES = strcasestr.c \
 				strchrnul.c
 
