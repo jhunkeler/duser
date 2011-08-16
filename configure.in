@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([duser], [1.0.0], [jhunkeler@stsci.edu], [duser], [https://github.com/jhunkeler/duser.git])
+AC_INIT([duser], [1.0.0], [jhunk@stsci.edu], [duser], [https://github.com/jhunkeler/duser.git])
 AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE(1.11.1)
@@ -33,7 +33,7 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS_ONCE([memset strcasecmp strdup strerror strncasecmp strstr])
+AC_CHECK_FUNCS([memset strcasecmp strdup strerror strncasecmp strstr])
 
 # Detect if the host operating system is SunOS/Solaris as it behaves slightly different
 # than GNU/Linux
