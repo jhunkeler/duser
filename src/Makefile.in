@@ -189,8 +189,10 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = -I$(top_srcdir)/include
-duser_LDFLAGS = -L$(top_srcdir)/compat
+duser_POSIX = -D__USE_POSIX
+AM_CFLAGS = ${duser_POSIX} --std=c99 -O2 -pedantic -Wall -Wextra
+@HAVE_COMPAT_FALSE@duser_LDFLAGS = 
+@HAVE_COMPAT_TRUE@duser_LDFLAGS = -L$(top_srcdir)/compat -ldusercompat
 duser_SOURCES = duser.c \
 		user.c \
 		util.c \

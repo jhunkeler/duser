@@ -7,8 +7,10 @@ AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE(1.11.1)
 
+AC_CONFIG_FILES([Makefile compat/Makefile src/Makefile])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_SRCDIR([src/duser.c])
+CFLAGS=""
 
 # Checks for programs.
 AC_PROG_CC
@@ -35,14 +37,16 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strcasecmp strdup strerror strncasecmp strstr])
 
-# Detect if the host operating system is SunOS/Solaris as it behaves slightly different
-# than GNU/Linux
-case "$host_os" in
-	*sunos*|solaris*)
-		AC_DEFINE([HAVE_SOLARIS], 1, [host operating system is solaris])
-	;;
-	*)
-esac
+AC_ARG_ENABLE([compat],
+[  --enable-compat    Enables built-in glibc string functions],
+	[case "${enableval}" in 
+		yes) compat=true ;;
+		no)  compat=false ;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-compat]) ;;
+    esac],[compat=false])
+	AM_CONDITIONAL([HAVE_COMPAT], [test x$compat = xtrue])
+
+
 
 # Figure out where everything goes in the filesystem
 AC_ARG_WITH(config-path,
@@ -53,9 +57,4 @@ AC_SUBST(CONFIGDIR)
 
 AC_DEFINE_UNQUOTED([CFG_PATH], "$CFGPATH", [duser configuration path])
 
-# Compiler Warnings Options
-AC_ARG_ENABLE(warnings,
-AC_HELP_STRING([--enable-warnings],[Enable all sorts of warnings for debugging.]),
-[CFLAGS="$CFLAGS -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -W -Wno-unused"],[])
-
-AC_OUTPUT([Makefile compat/Makefile src/Makefile])
+AC_OUTPUT

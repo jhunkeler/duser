@@ -791,6 +791,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 CONFIGDIR
+HAVE_COMPAT_FALSE
+HAVE_COMPAT_TRUE
 LIBOBJS
 LIBTOOL_DEPS
 CPP
@@ -911,8 +913,8 @@ with_pic
 enable_fast_install
 with_gnu_ld
 enable_libtool_lock
+enable_compat
 with_config_path
-enable_warnings
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1561,7 +1563,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-warnings       Enable all sorts of warnings for debugging.
+  --enable-compat    Enables built-in glibc string functions
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2685,9 +2687,12 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
+ac_config_files="$ac_config_files Makefile compat/Makefile src/Makefile"
+
 ac_config_headers="$ac_config_headers include/config.h"
 
 
+CFLAGS=""
 
 # Checks for programs.
 ac_ext=c
@@ -4812,13 +4817,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:4815: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:4820: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4818: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:4823: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4821: output\"" >&5)
+  (eval echo "\"\$as_me:4826: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6024,7 +6029,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6027 "configure"' > conftest.$ac_ext
+  echo '#line 6032 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7847,11 +7852,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7850: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7855: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7854: \$? = $ac_status" >&5
+   echo "$as_me:7859: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8186,11 +8191,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8189: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8194: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8193: \$? = $ac_status" >&5
+   echo "$as_me:8198: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8291,11 +8296,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8294: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8299: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8298: \$? = $ac_status" >&5
+   echo "$as_me:8303: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8346,11 +8351,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8349: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8354: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8353: \$? = $ac_status" >&5
+   echo "$as_me:8358: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11149,7 +11154,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11152 "configure"
+#line 11157 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11245,7 +11250,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11248 "configure"
+#line 11253 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12115,18 +12120,29 @@ fi
 done
 
 
-# Detect if the host operating system is SunOS/Solaris as it behaves slightly different
-# than GNU/Linux
-case "$host_os" in
-	*sunos*|solaris*)
+# Check whether --enable-compat was given.
+if test "${enable_compat+set}" = set; then
+  enableval=$enable_compat; case "${enableval}" in
+		yes) compat=true ;;
+		no)  compat=false ;;
+        *) { { $as_echo "$as_me:$LINENO: error: bad value ${enableval} for --enable-compat" >&5
+$as_echo "$as_me: error: bad value ${enableval} for --enable-compat" >&2;}
+   { (exit 1); exit 1; }; } ;;
+    esac
+else
+  compat=false
+fi
 
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_SOLARIS 1
-_ACEOF
+	 if test x$compat = xtrue; then
+  HAVE_COMPAT_TRUE=
+  HAVE_COMPAT_FALSE='#'
+else
+  HAVE_COMPAT_TRUE='#'
+  HAVE_COMPAT_FALSE=
+fi
 
-	;;
-	*)
-esac
+
+
 
 # Figure out where everything goes in the filesystem
 
@@ -12144,15 +12160,6 @@ cat >>confdefs.h <<_ACEOF
 #define CFG_PATH "$CFGPATH"
 _ACEOF
 
-
-# Compiler Warnings Options
-# Check whether --enable-warnings was given.
-if test "${enable_warnings+set}" = set; then
-  enableval=$enable_warnings; CFLAGS="$CFLAGS -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -W -Wno-unused"
-fi
-
-
-ac_config_files="$ac_config_files Makefile compat/Makefile src/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -12270,6 +12277,13 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   { { $as_echo "$as_me:$LINENO: error: conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 $as_echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${HAVE_COMPAT_TRUE}" && test -z "${HAVE_COMPAT_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"HAVE_COMPAT\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"HAVE_COMPAT\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -13036,12 +13050,12 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
-    "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
-    "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "compat/Makefile") CONFIG_FILES="$CONFIG_FILES compat/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
+    "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
+    "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 $as_echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

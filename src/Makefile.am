@@ -1,8 +1,12 @@
 sbin_PROGRAMS=	duser
+duser_POSIX=-D__USE_POSIX
+AM_CFLAGS=${duser_POSIX} --std=c99 -O2 -pedantic -Wall -Wextra
+if HAVE_COMPAT
+duser_LDFLAGS=-L$(top_srcdir)/compat -ldusercompat
+else
+duser_LDFLAGS=
+endif
 
-AM_CPPFLAGS=	-I$(top_srcdir)/include
-
-duser_LDFLAGS=  -L$(top_srcdir)/compat
 duser_SOURCES=	duser.c \
 		user.c \
 		util.c \
