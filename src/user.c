@@ -220,10 +220,7 @@ int user_del(record_t* rec)
 
 	fclose(fp);
 	close(fd);
-
-	/* unistd.h requires this be a (const char *) not (struct FILE * (*)(void)) */
-	/* -- extrarius -- */
-	unlink((const char *)tmpfile);
+	unlink(_tmpfile);
 	
 	if(bytes_total)
 		return bytes_total;
@@ -319,7 +316,7 @@ int get_file_count(const char* path)
 
 	while((ep = readdir(dp)))
 	{
-#ifdef HAVE_SOLARIS
+#ifdef HAVE_COMPAT
 		char path[PATH_MAX];
 		struct stat st;
 		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
@@ -375,7 +372,7 @@ char** get_file_list(const char* path, int count)
 	}
 	while((ep = readdir(dp)))
 	{
-#ifdef HAVE_SOLARIS
+#ifdef HAVE_COMPAT
 		char path[PATH_MAX];
 		struct stat st;
 		snprintf(path, PATH_MAX, "%s%s", list_path, ep->d_name);
