@@ -26,13 +26,18 @@
 #endif
 
 #include <limits.h>
-#define REGEX_MAX   255
-#define SELF	__FUNCTION__
-#ifndef HAVE_SOLARIS
+#ifndef PATH_MAX
+#	define PATH_MAX	256
+#endif
+
+#ifndef HAVE_COMPAT
 #	define FMTLIST "%20s\t%5d%23s\n"
 #else
 #	define FMTLIST "%20s\t%5d%16s\n"
 #endif
+
+#define REGEX_MAX   255
+#define SELF	__FUNCTION__
 
 typedef struct stats_t
 {
