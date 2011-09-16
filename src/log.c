@@ -24,9 +24,9 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <limits.h>
 #include <errno.h>
 #include <time.h>
+#include <limits.h>
 #include "duser.h"
 
 extern char logfile[PATH_MAX];
