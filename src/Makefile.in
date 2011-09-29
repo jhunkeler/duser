@@ -49,7 +49,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am_duser_OBJECTS = duser.$(OBJEXT) user.$(OBJEXT) util.$(OBJEXT) \
-	log.$(OBJEXT) cfg.$(OBJEXT)
+	mklist.$(OBJEXT) log.$(OBJEXT) cfg.$(OBJEXT)
 duser_OBJECTS = $(am_duser_OBJECTS)
 duser_LDADD = $(LDADD)
 duser_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -189,13 +189,14 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-duser_POSIX = -D__USE_POSIX
+duser_POSIX = -D_GNU_SOURCE
 AM_CFLAGS = ${duser_POSIX} --std=c99 -O2 -pedantic -Wall -Wextra
-@HAVE_COMPAT_FALSE@duser_LDFLAGS = 
+@HAVE_COMPAT_FALSE@duser_LDFLAGS = -lpcre
 @HAVE_COMPAT_TRUE@duser_LDFLAGS = -L$(top_srcdir)/compat -ldusercompat
 duser_SOURCES = duser.c \
 		user.c \
 		util.c \
+		mklist.c \
 		log.c \
 		cfg.c
 
@@ -289,6 +290,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mklist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/user.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
 
