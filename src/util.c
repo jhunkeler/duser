@@ -18,10 +18,12 @@
 * along with duser. If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
 #include <ctype.h>
 #include "duser.h"
 
@@ -93,3 +95,22 @@ int strval(const char* str)
 	return 0;
 }
 
+int touch(const char* filename, mode_t mode)
+{
+	size_t bytes = 0;
+	int fd = -1;
+
+	if((fd = open(filename, O_CREAT | O_WRONLY, mode)) < 0)
+	{
+		COM(SELF, "FATAL: %s: %s: %s\n", filename, strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, filename, strerror(errno));
+		return errno;
+	}
+	char byte = '\0';
+	if((bytes = write(fd, &byte, 1)) < 1)
+	{
+		return errno;
+	}
+	close(fd);
+	return 0;
+}
