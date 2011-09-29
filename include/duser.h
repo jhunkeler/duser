@@ -25,6 +25,7 @@
 #include "config.h"
 #endif
 
+#include <sys/types.h>
 #include <limits.h>
 #ifndef PATH_MAX
 #	define PATH_MAX	256
@@ -66,6 +67,7 @@ typedef struct record_t
 void usage(void);
 int strval(const char* str);
 int strfind(const char* str1, const char* str2);
+int touch(const char* filename, mode_t mode);
 int logcleanup(void);
 int COM(const char* func, const char *format, ...);
 record_t* find_in_file(const char* filename, const char* needle);
@@ -82,5 +84,9 @@ int user_cmd(const int argc, char* argv[]);
 int user_choice(char c);
 int user_add(const char* filename, const char* needle);
 int user_new_list(const char* fname);
+char* str_replace(char* str, char* old, char* new);
+char* getfile(const char* filename);
+int mailer(const char* subj, const char* from, const char* to, const char* mesg);
+int mklist(char* str);
 int check_cmd_string(char** args, const char* str2, int count);
 #endif
