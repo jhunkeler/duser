@@ -18,8 +18,6 @@
 * along with duser. If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -206,6 +204,9 @@ int main(int argc, char* argv[])
 	}
 	if(CMD_FLAG_MOD)
 	{
+		fprintf(stderr, "Not implemented, sorry.\n");
+		return 0;
+
 		if(needle == NULL)
 		{
 			printf("You must specify an email address\n");
@@ -217,7 +218,6 @@ int main(int argc, char* argv[])
 			return -1;
 		}
 
-		fprintf(stderr, "Not implemented, sorry.\n");
 		return 0;
 	}
 	if(CMD_FLAG_LIST)
@@ -264,6 +264,9 @@ int main(int argc, char* argv[])
 	}
 	if(CMD_FLAG_NEW)
 	{
+		fprintf(stderr, "Not implemented, sorry.\n");
+		return 0;
+		
 		memset(filename, 0L, PATH_MAX);
 		snprintf(filename, PATH_MAX, "%s%s", list_path, needle);
 
@@ -280,11 +283,15 @@ int main(int argc, char* argv[])
 		char choice = getchar();
 		if((user_choice(choice)) == 0)
 		{
-			if((user_new_list(filename)) == 0)
+			if((mklist(filename)) == 0)
 			{
 				printf("List added\n");
 				COM(SELF, "Commmand: NEW\n");
 				COM(SELF, "Created new list '%s'\n", basename(filename));
+			}
+			else
+			{
+				printf("Aborting...\n");
 			}
 		}
 		else
