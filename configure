@@ -12150,7 +12150,7 @@ fi
 if test "${with_config_path+set}" = set; then
   withval=$with_config_path; CFGPATH="$withval"
 else
-  CFGPATH="/usr/local/etc/duser"
+  CFGPATH="/usr/local/etc/duser/duser.conf"
 fi
 
 

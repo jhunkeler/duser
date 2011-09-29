@@ -52,7 +52,7 @@ AC_ARG_ENABLE([compat],
 AC_ARG_WITH(config-path,
 	AC_HELP_STRING([--with-config-path=<pathname>],
 		[specify the path for duser config files (default: /usr/local/etc/duser)]),
-	[CFGPATH="$withval"], [CFGPATH="/usr/local/etc/duser"])
+	[CFGPATH="$withval"], [CFGPATH="/usr/local/etc/duser/duser.conf"])
 AC_SUBST(CONFIGDIR)
 
 AC_DEFINE_UNQUOTED([CFG_PATH], "$CFGPATH", [duser configuration path])
