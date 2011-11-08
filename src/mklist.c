@@ -26,7 +26,6 @@
 #include <pwd.h>
 #include <errno.h>
 #include <libgen.h>
-#include <pcre.h>
 #include "duser.h"
 
 char* str_replace(char* str, char* old, char* new)
@@ -120,24 +119,5 @@ int mklist(char* filename)
 		exit(1);
 	}
 
-	pcre *re;
-	const int OVECOUNT = 30;
-	const char* error;
-	int rc;
-	int erroffset;
-	int ovector[OVECOUNT];
-
-	if((re = pcre_compile("%s|list", 0, &error, &erroffset, NULL)) == NULL)
-	{
-		fprintf(stderr, "%s: PCRE compilation failed at offset %d: %s\n", SELF, erroffset, error);
-		return -1;
-	}
-
-	if((rc = pcre_exec(re, NULL, tmptpl, strlen(tmptpl), 0, 0, ovector, OVECOUNT)) < 0)
-	{
-		fprintf(stderr, "%s: PCRE match failed '%d'\n", SELF, rc);
-	}
-	
-	printf("%s\n", (tmptpl + ovector[1]));
 	return 0;
 }
