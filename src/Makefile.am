@@ -4,7 +4,7 @@ AM_CFLAGS=${duser_POSIX} --std=c99 -O2 -pedantic -Wall -Wextra
 if HAVE_COMPAT
 duser_LDFLAGS=-L$(top_srcdir)/compat -ldusercompat
 else
-duser_LDFLAGS=-lpcre
+duser_LDFLAGS=
 endif
 
 duser_SOURCES=	duser.c \
