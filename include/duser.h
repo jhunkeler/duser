@@ -65,6 +65,7 @@ typedef struct record_t
 } record_t;
 
 void usage(void);
+char *__basename(char *path);
 int strval(const char* str);
 int strfind(const char* str1, const char* str2);
 int touch(const char* filename, mode_t mode);
