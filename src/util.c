@@ -27,6 +27,12 @@
 #include <ctype.h>
 #include "duser.h"
 
+char *__basename(char *path)
+{
+    char *base = strrchr(path, '/');
+    return base ? base+1 : path;
+}
+
 void stats_init(stats_t *s)
 {
 	s->lines = 0;
