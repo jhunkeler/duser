@@ -29,7 +29,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <fcntl.h>
-#include <libgen.h>
 #include "duser.h"
 
 extern char list_path[PATH_MAX];
@@ -60,7 +59,7 @@ int user_del_list(const char* filename)
 	}
 	
 	printf("\n!!!WARNING!!!\n");
-	printf("You are about to delete the mailing list '%s'\n\n", basename(tmp));
+	printf("You are about to delete the mailing list '%s'\n\n", __basename(tmp));
 	printf("Are SURE you want to continue? [y/N]");
 	int choice = getchar();
 	if((user_choice(choice)) != 0)
@@ -78,8 +77,8 @@ int user_del_list(const char* filename)
 		}
 		else
 		{
-			COM(SELF, "List '%s' deleted\n", basename(tmp));
-			printf("Deleted list: '%s'\n", basename(tmp));
+			COM(SELF, "List '%s' deleted\n", __basename(tmp));
+			printf("Deleted list: '%s'\n", __basename(tmp));
 		}
 	}
 
@@ -101,7 +100,7 @@ int user_del_all(const char* needle)
 		snprintf(tmp, PATH_MAX, "%s%s", list_path, list[i]);
 		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
-			printf("%20s\t%5d%23s\n", basename(rp->file), rp->index, rp->name);
+			printf("%20s\t%5d%23s\n", __basename(rp->file), rp->index, rp->name);
 			processed.matches++;
 		}
 	}
@@ -137,8 +136,8 @@ int user_del_all(const char* needle)
 			{
 				if((user_del(rp)) > 0)
 				{
-					COM(SELF, "'%s' deleted from '%s' at line %d\n", rp->name, basename(rp->file), rp->index);
-					printf("'%s' deleted from '%s'\n", rp->name, basename(rp->file));
+					COM(SELF, "'%s' deleted from '%s' at line %d\n", rp->name, __basename(rp->file), rp->index);
+					printf("'%s' deleted from '%s'\n", rp->name, __basename(rp->file));
 				}
 			}
 		}
@@ -158,7 +157,7 @@ int user_del(record_t* rec)
 	int bytes_total = 0;
 	char buf[REGEX_MAX];
 	char _tmpfile[255];
-	snprintf(_tmpfile, sizeof(_tmpfile), "/tmp/duser.%s.XXXXXX", basename(rec->file));
+	snprintf(_tmpfile, sizeof(_tmpfile), "/tmp/duser.%s.XXXXXX", __basename(rec->file));
 	if((fd = mkstemp(_tmpfile)) < 0 || (tfp = fdopen(fd, "r+")) == NULL)
 	{
 		if(fd != -1)
@@ -170,7 +169,7 @@ int user_del(record_t* rec)
 		exit(1);
 	}
 	
-	if((fp = fopen(rec->file, "r")) == NULL)
+	if((fp = fopen(rec->file, "r+")) == NULL)
 	{
 		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, rec->file, strerror(errno));
 		exit(1);
@@ -180,7 +179,7 @@ int user_del(record_t* rec)
 	{
 		memset(buf, 0, sizeof(buf));
 		fgets(buf, REGEX_MAX, fp);
-		buf[strlen(buf) - 1] = '\0';
+		buf[strlen(buf)] = '\0';
 		if((strncmp(buf, rec->name, strlen(rec->name))) != 0 && (i != rec->index))
 		{
 			buf[strlen(buf)] = '\n';
@@ -204,16 +203,16 @@ int user_del(record_t* rec)
 	{
 		memset(buf, 0, sizeof(buf));
 		fgets(buf, REGEX_MAX, tfp);
-		buf[strlen(buf) - 1] = '\0';
+		buf[strlen(buf)] = '\0';
 		if((strncmp(buf, rec->name, strlen(rec->name))) != 0 && (i != rec->index))
 		{
-			buf[strlen(buf)] = '\n';
 			if(buf[0] == '\n')
 				buf[0] = '\0';
 
 			bytes = fwrite(buf, strlen(buf), 1, fp);
 			bytes_total += bytes;
 		}
+		i++;
 	}
 
 	fclose(fp);
@@ -257,8 +256,6 @@ int find_in_file_ex(record_t* rec)
 
 record_t* find_in_file(const char* filename, const char* needle)
 {
-	//regmatch_t pmatch[10];
-	//regex_t preg;
 	record_t record, *rptr;
 	rptr = &record;
 	rptr->index = 0;
@@ -271,7 +268,8 @@ record_t* find_in_file(const char* filename, const char* needle)
 	
 	if((fp = fopen(fname, "r")) == NULL)
 	{
-		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, basename(fname), strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, __basename(fname), strerror(errno));
+		free(fname);
 		exit(1);
 	}
 	strncpy(rptr->file, fname, PATH_MAX);
@@ -391,8 +389,8 @@ char** get_file_list(const char* path, int count)
 		if(ep->d_type == DT_REG && !strstr(ep->d_name, "."))
 		{
 			list[i] = (char*)malloc(sizeof(char) * strlen(ep->d_name)+1);
-			memset(list[i], 0L, strlen(ep->d_name)+1);
-			strncpy(list[i], ep->d_name, strlen(ep->d_name)+1);
+			memset(list[i], 0L, strlen(ep->d_name));
+			strncpy(list[i], ep->d_name, strlen(ep->d_name));
 			i++;
 		}
 #endif
@@ -400,7 +398,6 @@ char** get_file_list(const char* path, int count)
 	closedir(dp);
 	return list;
 }
-
 
 int user_list(const char* needle)
 {
@@ -422,7 +419,8 @@ int user_list(const char* needle)
 		record_t *rp;
 		if((rp = find_in_file(tmp, needle)) != NULL)
 		{
-			printf(FMTLIST, basename(rp->file), rp->index, rp->name);
+			char* base = __basename(rp->file);
+			printf(FMTLIST, base, rp->index, rp->name);
 			processed.matches++;
 		}
 	}
@@ -455,7 +453,7 @@ int user_add(const char* filename, const char* needle)
 	
 	if((rp = find_in_file(filename, needle)) != NULL)
 	{
-		fprintf(stderr, "%s: '%s' already exists in '%s'\n", SELF, needle, basename(fname));
+		fprintf(stderr, "%s: '%s' already exists in '%s'\n", SELF, needle, __basename(fname));
 		return -1;
 	}
 	rewind(fp);
@@ -545,13 +543,13 @@ int user_new_list(const char* fname)
 
 	if((access(filename, F_OK)) == 0)
 	{
-		fprintf(stderr, "%s: %s: File already exists\n", SELF, basename(filename));
+		fprintf(stderr, "%s: %s: File already exists\n", SELF, __basename(filename));
 		return -1;
 	}
 	
 	if((fp = fopen(filename, "w+")) == NULL)
 	{
-		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, basename(filename), strerror(errno));
+		fprintf(stderr, "FATAL: %s: %s: %s\n", SELF, __basename(filename), strerror(errno));
 		return -1;
 	}
 	
@@ -559,7 +557,7 @@ int user_new_list(const char* fname)
 	tmptr = localtime(&ttm);
 	timestr = asctime(tmptr);
 	timestr[strlen(timestr)-1] = '\0';
-	snprintf(message, BUFSIZ, "#\n# Created by %s on %s. UID %d\n#\n", basename(progname), timestr, getuid());	
+	snprintf(message, BUFSIZ, "#\n# Created by %s on %s. UID %d\n#\n", __basename(progname), timestr, getuid());	
 	fputs(message, fp);
 	fflush(fp);
 	fclose(fp);
